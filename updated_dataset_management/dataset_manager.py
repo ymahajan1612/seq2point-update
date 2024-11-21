@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import os
 import nilmtk
+import appliance_parameters
+
+
 class DatasetManager(ABC):
     def __init__(self, data_directory, save_path, sample_seconds = 8, debug = False, appliance_name = 'microwave'):
         self.data_directory = data_directory
@@ -54,73 +57,7 @@ class DatasetManager(ABC):
 class REFITDataManager(DatasetManager):
     def __init__(self, data_directory, save_path, sample_seconds = 8, debug = False, appliance_name = 'microwave'):
         super().__init__(data_directory, save_path, sample_seconds, debug, appliance_name)
-        self.params_appliance = {
-            'kettle': {
-                'windowlength': 599,
-                'on_power_threshold': 2000,
-                'max_on_power': 3998,
-                'mean': 700,
-                'std': 1000,
-                's2s_length': 128,
-                'houses': [2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 19, 20],
-                'channels': [8, 9, 9, 8, 7, 9, 9, 7, 6, 9, 5, 9],
-                'test_house': 2,
-                'validation_house': 5,
-                'test_on_train_house': 5,
-            },
-            'microwave': {
-                'windowlength': 599,
-                'on_power_threshold': 200,
-                'max_on_power': 3969,
-                'mean': 500,
-                'std': 800,
-                's2s_length': 128,
-                'houses': [4, 10, 12, 17, 19],
-                'channels': [8, 8, 3, 7, 4],
-                'test_house': 4,
-                'validation_house': 17,
-                'test_on_train_house': 10,
-            },
-            'fridge': {
-                'windowlength': 599,
-                'on_power_threshold': 50,
-                'max_on_power': 3323,
-                'mean': 200,
-                'std': 400,
-                's2s_length': 512,
-                'houses': [2, 5, 9, 12, 15],
-                'channels': [1, 1, 1,  1, 1],
-                'test_house': 15,
-                'validation_house': 12,
-                'test_on_train_house': 5,
-            },
-            'dishwasher': {
-                'windowlength': 599,
-                'on_power_threshold': 10,
-                'max_on_power': 3964,
-                'mean': 700,
-                'std': 1000,
-                's2s_length': 1536,
-                'houses': [5, 7, 9, 13, 16, 18, 20],
-                'channels': [4, 6, 4, 4, 6, 6, 5],
-                'test_house': 20,
-                'validation_house': 18,
-                'test_on_train_house': 13,
-            },
-            'washingmachine': {
-                'windowlength': 599,
-                'on_power_threshold': 20,
-                'max_on_power': 3999,
-                'mean': 400,
-                'std': 700,
-                's2s_length': 2000,
-                'houses': [2, 5, 7, 8, 9, 15, 16, 17, 18],
-                'channels': [2, 3, 5, 4, 3, 3, 5, 4, 5],
-                'test_house': 8,
-                'validation_house': 18,
-                'test_on_train_house': 5,
-            }
-            }
+        self.params_appliance = appliance_parameters.refit_params_appliance
         if self.appliance_name not in self.params_appliance:
             self.appliance_name = 'microwave'
         if self.debug:
@@ -188,76 +125,16 @@ class REFITDataManager(DatasetManager):
         self.saveData(normalized_data, 2, test_house)
 
 
-class UKDALE(DatasetManager):
+class UKDALEDataManager(DatasetManager):
     def __init__(self, data_directory, save_path, sample_seconds=8, debug=False, appliance_name='microwave', validation_percent=13):
         super().__init__(data_directory, save_path, sample_seconds, debug, appliance_name)
         self.validation_percent = validation_percent
-        self.params_appliance = {
-        'kettle': {
-            'windowlength': 599,
-            'on_power_threshold': 2000,
-            'max_on_power': 3998,
-            'mean': 700,
-            'std': 1000,
-            's2s_length': 128,
-            'houses': [1, 2],
-            'channels': [10, 8],
-            'train_house': 1,
-            'test_house': 2,
-        },
-        'microwave': {
-            'windowlength': 599,
-            'on_power_threshold': 200,
-            'max_on_power': 3969,
-            'mean': 500,
-            'std': 800,
-            's2s_length': 128,
-            'houses': [1, 2],
-            'channels': [13, 15],
-            'train_house': 1,
-            'test_house': 2,
-        },
-        'fridge': {
-            'windowlength': 599,
-            'on_power_threshold': 50,
-            'max_on_power': 3323,
-            'mean': 200,
-            'std': 400,
-            's2s_length': 512,
-            'houses': [1, 2],
-            'channels': [12, 14],
-            'train_house': 1,
-            'test_house': 2,
-        },
-        'dishwasher': {
-            'windowlength': 599,
-            'on_power_threshold': 10,
-            'max_on_power': 3964,
-            'mean': 700,
-            'std': 1000,
-            's2s_length': 1536,
-            'houses': [1, 2],
-            'channels': [6, 13],
-            'train_house': 1,
-            'test_house': 2,
-        },
-        'washingmachine': {
-            'windowlength': 599,
-            'on_power_threshold': 20,
-            'max_on_power': 3999,
-            'mean': 400,
-            'std': 700,
-            's2s_length': 2000,
-            'houses': [1, 2],
-            'channels': [5, 12],
-            'train_house': 1,
-            'test_house': 2,
-        }
-        }
+        self.params_appliance = appliance_parameters.ukdale_params_appliance
         if self.appliance_name not in self.params_appliance:
             self.appliance_name = 'microwave'
         if self.debug:
             print(f'Using appliance {self.appliance_name}')
+
     def loadData(self, house_number, channel_number):
         """
         loads UKDALE data for the house number and channel number (appliance) specified
@@ -272,7 +149,7 @@ class UKDALE(DatasetManager):
         mains_df = mains_df.sort_values(by='time')
         appliance_df = appliance_df.sort_values(by='time')
         merged_df = pd.merge_asof(mains_df, appliance_df, on='time', direction='nearest')
-
+        merged_df['time'] = pd.to_datetime(merged_df['time'])
         return merged_df
 
     def saveData(self, dataframe, type):
@@ -308,12 +185,36 @@ class UKDALE(DatasetManager):
         test_data = self.normalizeData(test_data)
         self.saveData(test_data, 2)
 
+class REDDDataManager(DatasetManager):
+    def __init__(self, data_directory, save_path, sample_seconds=8, debug=False, appliance_name='microwave'):
+        super().__init__(data_directory, save_path, sample_seconds, debug, appliance_name)
+        self.params_appliance = appliance_parameters.redd_params_appliance
 
+        if self.appliance_name not in self.params_appliance:
+            self.appliance_name = 'microwave'
 
+        if self.debug:
+            print(f'Using appliance {self.appliance_name}')
+    
+    def loadData(self, house_number, channel_number):
+        pass
 
+    def saveData(self, dataframe, type):
+        pass
 
-UKDALEManager = UKDALE(os.path.join('C:\\', 'Users', 'yashm', 'Downloads', 'UKDALE', 'ukdale.h5'), 'ukdaledata/', debug = True, appliance_name='kettle')
+    def createTrainSet(self):
+        pass
 
-UKDALEManager.createTrainSet()
-UKDALEManager.createTestSet()
+    def createValidationSet(self):
+        pass
 
+    def createTestSet(self):
+        pass
+    
+
+# UKDALEManager = UKDALEDataManager(os.path.join('C:\\', 'Users', 'yashm', 'Downloads', 'UKDALE', 'ukdale.h5'), 'ukdaledata/', debug = True, appliance_name='microwave')
+
+RefitManager = REFITDataManager(os.path.join('C:\\', 'Users', 'yashm', 'Downloads', 'CLEAN_REFIT_081116'), 'REFITDATA', debug=True, appliance_name="microwave")
+RefitManager.createTrainSet()
+RefitManager.createValidationSet()
+RefitManager.createTestSet()
