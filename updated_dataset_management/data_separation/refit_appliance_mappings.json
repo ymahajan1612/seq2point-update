@@ -21,14 +21,14 @@
       "6": "Toaster",
       "7": "Hi-Fi",
       "8": "Kettle",
-      "9": "Overhead Fan"
+      "9": "Fan"
     },
     "House 3": {
       "0": "Aggregate",
       "1": "Toaster",
       "2": "Fridge-Freezer",
       "3": "Freezer",
-      "4": "Tumble Dryer",
+      "4": "Dryer",
       "5": "Dishwasher",
       "6": "Washing Machine",
       "7": "Television",
@@ -42,7 +42,7 @@
       "3": "Fridge-Freezer",
       "4": "Washing Machine",
       "5": "Washing Machine",
-      "6": "Desktop Computer",
+      "6": "Computer",
       "7": "Television",
       "8": "Microwave",
       "9": "Kettle"
@@ -50,7 +50,7 @@
     "House 5": {
       "0": "Aggregate",
       "1": "Fridge-Freezer",
-      "2": "Tumble Dryer",
+      "2": "Dryer",
       "3": "Washing Machine",
       "4": "Dishwasher",
       "5": "Computer",
@@ -76,7 +76,7 @@
       "1": "Fridge",
       "2": "Freezer",
       "3": "Freezer",
-      "4": "Tumble Dryer",
+      "4": "Dryer",
       "5": "Washing Machine",
       "6": "Dishwasher",
       "7": "Television",
@@ -105,7 +105,7 @@
       "6": "Microwave",
       "7": "Kettle",
       "8": "Hi-Fi",
-      "9": "Electric Heater"
+      "9": "Heater"
     },
     "House 10": {
       "0": "Aggregate",
@@ -134,14 +134,11 @@
     "House 12": {
       "0": "Aggregate",
       "1": "Fridge-Freezer",
-      "2": "Unknown",
-      "3": "Unknown",
       "4": "Computer",
       "5": "Microwave",
       "6": "Kettle",
       "7": "Toaster",
-      "8": "Television",
-      "9": "Unknown"
+      "8": "Television"
     },
     "House 13": {
       "0": "Aggregate",
@@ -149,7 +146,6 @@
       "2": "Freezer",
       "3": "Washing Machine",
       "4": "Dishwasher",
-      "5": "Unknown",
       "6": "Network",
       "7": "Microwave",
       "8": "Microwave",
@@ -158,7 +154,7 @@
     "House 15": {
       "0": "Aggregate",
       "1": "Fridge-Freezer",
-      "2": "Tumble Dryer",
+      "2": "Dryer",
       "3": "Washing Machine",
       "4": "Dishwasher",
       "5": "Computer",
@@ -183,7 +179,7 @@
       "0": "Aggregate",
       "1": "Freezer",
       "2": "Fridge-Freezer",
-      "3": "Tumble Dryer",
+      "3": "Dryer",
       "4": "Washing Machine",
       "5": "Computer",
       "6": "Television",
@@ -219,7 +215,7 @@
       "0": "Aggregate",
       "1": "Fridge",
       "2": "Freezer",
-      "3": "Tumble Dryer",
+      "3": "Dryer",
       "4": "Washing Machine",
       "5": "Dishwasher",
       "6": "Computer",
@@ -230,10 +226,10 @@
     "House 21": {
       "0": "Aggregate",
       "1": "Fridge-Freezer",
-      "2": "Tumble Dryer",
+      "2": "Dryer",
       "3": "Washing Machine",
       "4": "Dishwasher",
-      "5": "Food Mixer",
+      "5": "Mixer",
       "6": "Television",
       "7": "Kettle",
       "8": "Vivarium",
