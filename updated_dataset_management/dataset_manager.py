@@ -9,6 +9,7 @@ class DatasetManager:
         self.appliance_name = appliance_name.lower()
         self.debug = debug
         self.max_num_houses = max_num_houses
+        self.sample_seconds = 8
 
         # Dynamically load house data
         self.house_data_map = self.loadData()
@@ -19,6 +20,7 @@ class DatasetManager:
         """
         Load data for all houses and create a mapping of house number to DataFrame.
         """
+        appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
         house_data_map = {}
         num_houses_loaded = 0
 
@@ -29,7 +31,7 @@ class DatasetManager:
             house_number = house_dir.split("_")[1]  # Extract house number
             house_path = os.path.join(self.data_directory, house_dir)
             aggregate_file = os.path.join(house_path, f'aggregate_H{house_number}.csv')
-            appliance_file = os.path.join(house_path, f'{self.appliance_name}_H{house_number}.csv')
+            appliance_file = os.path.join(house_path, f'{appliance_name_formatted}_H{house_number}.csv')
 
             if not os.path.exists(aggregate_file) or not os.path.exists(appliance_file):
                 continue
@@ -37,8 +39,6 @@ class DatasetManager:
             # Load data
             aggregate_data = pd.read_csv(aggregate_file)
             appliance_data = pd.read_csv(appliance_file)
-
-            print(len(aggregate_data))
 
             # Ensure time columns are datetime
             aggregate_data['time'] = pd.to_datetime(aggregate_data['time'])
@@ -51,7 +51,7 @@ class DatasetManager:
                 on='time',
                 direction='nearest'
             )
-            merged_data = merged_data[['time', 'aggregate', self.appliance_name]]
+            merged_data = merged_data[['time', 'aggregate', appliance_name_formatted]]
 
             house_data_map[int(house_number)] = merged_data
             num_houses_loaded += 1
@@ -65,13 +65,14 @@ class DatasetManager:
         """
         Normalize aggregate and appliance data globally for all houses.
         """
-        all_appliance_data = pd.concat([df[self.appliance_name] for df in self.house_data_map.values()])
+        appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
+        all_appliance_data = pd.concat([df[appliance_name_formatted] for df in self.house_data_map.values()])
         appliance_mean = all_appliance_data.mean()
         appliance_std = all_appliance_data.std()
 
         for house_data in self.house_data_map.values():
             house_data['aggregate'] = (house_data['aggregate'] - house_data['aggregate'].mean()) / house_data['aggregate'].std()
-            house_data[self.appliance_name] = (house_data[self.appliance_name] - appliance_mean) / appliance_std
+            house_data[appliance_name_formatted] = (house_data[appliance_name_formatted] - appliance_mean) / appliance_std
 
     def splitHouses(self):
         """
@@ -96,10 +97,13 @@ class DatasetManager:
         """
         Save data to appropriate directories for train, validation, or test sets.
         """
-        set_dir = os.path.join(self.save_path, set_type)
-        os.makedirs(set_dir, exist_ok=True)
-
-        output_file = os.path.join(set_dir, f'{self.appliance_name}_H{house_number}.csv')
+        appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
+        os.makedirs(self.save_path, exist_ok=True)
+        output_file = os.path.join(self.save_path, f'{appliance_name_formatted}_{set_type}_H{house_number}.csv')
+        dataframe['time'] = pd.to_datetime(dataframe['time'])  
+        dataframe = dataframe.set_index('time')
+        dataframe.resample(f'{self.sample_seconds}S').mean().fillna(method='backfill', limit=1)
+        dataframe.reset_index(inplace=True)
         dataframe.to_csv(output_file, index=False)
         if self.debug:
             print(f"Saved {set_type} data for House {house_number} to {output_file}")
@@ -121,7 +125,13 @@ class DatasetManager:
 # refitManager = DatasetManager(os.path.join("C:\\", "Users", "yashm", "Downloads", "refit_data_separated"), os.path.join("C:\\", "Users", "yashm", "Downloads", "refit_data"),"kettle", debug=True, max_num_houses=4)
 
 
-ukDaleManager = DatasetManager(os.path.join("C:\\", "Users", "yashm", "Downloads", "ukdale_data_separated"), os.path.join("C:\\", "Users", "yashm", "Downloads", "ukdale_data"),"microwave", debug=True)
-ukDaleManager.createTrainSet()
-ukDaleManager.createValidationSet()
-ukDaleManager.createTestSet()
+ECODatasetManager = DatasetManager(
+    os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "eco_data_separated"),
+    os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "eco_data_train_val_test"),
+    "coffee machine",
+    debug=True,
+    max_num_houses=4
+)
+ECODatasetManager.createTrainSet()
+ECODatasetManager.createValidationSet()
+ECODatasetManager.createTestSet()
