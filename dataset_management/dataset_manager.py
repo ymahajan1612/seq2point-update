@@ -122,16 +122,3 @@ class DatasetManager:
         self.saveData(test_data, 'test', self.test_house)
 
 
-# refitManager = DatasetManager(os.path.join("C:\\", "Users", "yashm", "Downloads", "refit_data_separated"), os.path.join("C:\\", "Users", "yashm", "Downloads", "refit_data"),"kettle", debug=True, max_num_houses=4)
-
-
-ECODatasetManager = DatasetManager(
-    os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "eco_data_separated"),
-    os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "eco_data_train_val_test"),
-    "coffee machine",
-    debug=True,
-    max_num_houses=4
-)
-ECODatasetManager.createTrainSet()
-ECODatasetManager.createValidationSet()
-ECODatasetManager.createTestSet()
