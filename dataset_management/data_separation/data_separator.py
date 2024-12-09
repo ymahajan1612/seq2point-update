@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import os
 import nilmtk  
+from datetime import datetime
 
 class DataSeparator:
     """
@@ -15,10 +16,19 @@ class DataSeparator:
         self.appliance_name = appliance_name.lower() if appliance_name else None
         self.dataset_type = dataset_type.upper()
         self.num_rows = num_rows
+
+        # Load data ranges for ECO dataset as the range differs for aggegate and appliance data
+        self.eco_data_ranges = None
+        if self.dataset_type == "ECO":
+            with open("eco_data_ranges.json", "r") as f:
+                self.eco_data_ranges = json.load(f)
+
         # Load appliance mappings for the dataset
         self.mapping_file = f"{dataset_type.lower()}_appliance_mappings.json"
-        self.output_dir = os.path.join(save_path, f'{dataset_type.lower()}_data_separated')
+        self.output_dir = os.path.join(save_path, f'{dataset_type.upper()}_data_separated')
         os.makedirs(self.output_dir, exist_ok=True)
+
+    
 
     def load_mappings(self):
         with open(self.mapping_file, 'r') as f:
@@ -62,7 +72,7 @@ class DataSeparator:
         if appliance.lower() == 'aggregate':
             data = pd.read_csv(
                 refit_file, header=0, names=['time', 'aggregate'],
-                usecols=[0, 1], na_filter=False, parse_dates=True, memory_map=True
+                usecols=[0, 2], na_filter=False, parse_dates=True, memory_map=True
             )
             if self.num_rows:
                 data = data.iloc[:min(len(data),self.num_rows)]
@@ -96,7 +106,6 @@ class DataSeparator:
         self._save_data(house_number, appliance_column, data)
     
     def _generate_timestamps(self, file_name, num_rows=86400):
-        print(f"Generating timestamps for {file_name}")
         base_date = file_name.split(".")[0]
         start_time = pd.to_datetime(base_date)
         return pd.date_range(start=start_time, periods=num_rows, freq='S')
@@ -109,6 +118,12 @@ class DataSeparator:
         for file_name in sorted(os.listdir(smart_meter_dir)):
             if not file_name.endswith('.csv'):
                 continue
+            start_date = datetime.strptime(self.eco_data_ranges[house_number]['start'], "%Y-%m-%d")
+            end_date = datetime.strptime(self.eco_data_ranges[house_number]['end'], "%Y-%m-%d")
+            file_date = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d")
+            if file_date < start_date or file_date > end_date:
+                continue
+
             file_path = os.path.join(smart_meter_dir, file_name)
 
             aggregate_df = pd.read_csv(file_path, header=None, usecols=[0], names=['aggregate'])
@@ -134,14 +149,18 @@ class DataSeparator:
             for file_name in sorted(os.listdir(plug_subdir)):
                 if not file_name.endswith('.csv'):
                     continue
+                print(file_name)
+                start_date = datetime.strptime(self.eco_data_ranges[house_number]['start'], "%Y-%m-%d")
+                end_date = datetime.strptime(self.eco_data_ranges[house_number]['end'], "%Y-%m-%d")
+                file_date = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d")
+                if file_date < start_date or file_date > end_date:
+                    continue
                 file_path = os.path.join(plug_subdir, file_name)
 
                 plug_df = pd.read_csv(file_path, header=None, usecols=[0], names=[column_name])
                 plug_df['time'] = self._generate_timestamps(file_name)
                 plug_df = plug_df[['time', column_name]]
 
-                # Removing -1 entries, indicating missing data
-                plug_df = plug_df[plug_df[column_name] != -1]
                 all_plug_data.append(plug_df)
 
             if all_plug_data:
@@ -150,13 +169,6 @@ class DataSeparator:
                     appliance_df = appliance_df.iloc[:min(len(appliance_df),self.num_rows)]
 
                 self._save_data(house_number, column_name, appliance_df)
-
-
-        
-        
-            
-
-
             
 
     def _save_data(self, house_number, appliance_column, data):
