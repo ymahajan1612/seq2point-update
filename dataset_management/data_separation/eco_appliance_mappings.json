@@ -29,7 +29,7 @@
     "01": "tablet",
     "02": "freezer",
     "03": "coffee_machine",
-    "04": "PC",
+    "04": "computer",
     "05": "fridge",
     "06": "kettle",
     "07": "entertainment"
@@ -50,7 +50,7 @@
     "04": "microwave",
     "05": "fridge",
     "06": "entertainment",
-    "07": "PC",
+    "07": "computer",
     "08": "kettle"
 },
 "House 6" : {

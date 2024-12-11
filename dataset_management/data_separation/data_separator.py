@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import nilmtk  
 from datetime import datetime
+import re
 
 class DataSeparator:
     """
@@ -118,6 +119,9 @@ class DataSeparator:
         for file_name in sorted(os.listdir(smart_meter_dir)):
             if not file_name.endswith('.csv'):
                 continue
+            match = re.match(r'(\d{4}-\d{2}-\d{2})', file_name)
+            if match:
+                file_name = match.group(1) + ".csv"
             start_date = datetime.strptime(self.eco_data_ranges[house_number]['start'], "%Y-%m-%d")
             end_date = datetime.strptime(self.eco_data_ranges[house_number]['end'], "%Y-%m-%d")
             file_date = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d")
@@ -149,7 +153,9 @@ class DataSeparator:
             for file_name in sorted(os.listdir(plug_subdir)):
                 if not file_name.endswith('.csv'):
                     continue
-                print(file_name)
+                match = re.match(r'(\d{4}-\d{2}-\d{2})', file_name)
+                if match:
+                    file_name = match.group(1) + ".csv"
                 start_date = datetime.strptime(self.eco_data_ranges[house_number]['start'], "%Y-%m-%d")
                 end_date = datetime.strptime(self.eco_data_ranges[house_number]['end'], "%Y-%m-%d")
                 file_date = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d")
