@@ -95,7 +95,6 @@ class DataSeparator:
             mains_data = dataset.buildings[int(house_number)].elec.mains().power_series_all_data()
             if self.num_rows:
                 mains_data = mains_data[:min(len(mains_data),self.num_rows)]
-            mains_data.index = mains_data.index.split('+')[0]
             data = pd.DataFrame({'time': mains_data.index, 'aggregate': mains_data.values})
         else:
             appliance_data = dataset.buildings[int(house_number)].elec[int(channel)].power_series_all_data()
@@ -104,6 +103,8 @@ class DataSeparator:
 
             data = pd.DataFrame({'time': appliance_data.index, appliance_column: appliance_data.values})
 
+        data['time'] = data['time'].astype(str).apply(lambda x: x.split('+')[0])
+        data['time']  = data['time'].astype(str).apply(lambda x: x.split('.')[0])
         self._save_data(house_number, appliance_column, data)
     
     def _generate_timestamps(self, file_name, num_rows=86400):
