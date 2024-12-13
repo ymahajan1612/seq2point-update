@@ -15,7 +15,7 @@ class DatasetManager:
         # Dynamically load house data
         self.house_data_map = self.loadData()
         self.normalizeData()
-        self.train_houses, self.validation_house, self.test_house = self.splitHouses()
+        self.train_house, self.validation_house, self.test_houses = self.splitHouses()
 
 
 
@@ -91,15 +91,15 @@ class DatasetManager:
 
         # Assign one house for validation and one for testing
         validation_house = house_numbers.pop()
-        test_house = house_numbers.pop()
-        train_houses = house_numbers  # Remaining houses
+        train_house = house_numbers.pop()
+        test_houses = house_numbers  # Remaining houses
 
         if self.debug:
-            print(f"Train houses: {train_houses}")
+            print(f"Train house: {train_house}")
             print(f"Validation house: {validation_house}")
-            print(f"Test house: {test_house}")
+            print(f"Test houses: {test_houses}")
 
-        return train_houses, validation_house, test_house
+        return train_house, validation_house, test_houses
 
     def saveData(self, dataframe, set_type, house_number):
         """
@@ -120,17 +120,17 @@ class DatasetManager:
             print(f"Saved {set_type} data for House {house_number} to {output_file}")
 
     def createTrainSet(self):
-        for house_number in self.train_houses:
-            train_data = self.house_data_map[house_number]
-            self.saveData(train_data, 'train', house_number)
+        train_data = self.house_data_map[self.train_house]
+        self.saveData(train_data, 'test', self.train_house)
 
     def createValidationSet(self):
         validation_data = self.house_data_map[self.validation_house]
         self.saveData(validation_data, 'validation', self.validation_house)
 
     def createTestSet(self):
-        test_data = self.house_data_map[self.test_house]
-        self.saveData(test_data, 'test', self.test_house)
+        for house_number in self.test_houses:
+            train_data = self.house_data_map[house_number]
+            self.saveData(train_data, 'train', house_number)
 
 refit_data_manager = DatasetManager(
     data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
