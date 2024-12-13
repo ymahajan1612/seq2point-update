@@ -121,7 +121,7 @@ class DatasetManager:
 
     def createTrainSet(self):
         train_data = self.house_data_map[self.train_house]
-        self.saveData(train_data, 'test', self.train_house)
+        self.saveData(train_data, 'train', self.train_house)
 
     def createValidationSet(self):
         validation_data = self.house_data_map[self.validation_house]
@@ -130,7 +130,7 @@ class DatasetManager:
     def createTestSet(self):
         for house_number in self.test_houses:
             train_data = self.house_data_map[house_number]
-            self.saveData(train_data, 'train', house_number)
+            self.saveData(train_data, 'test', house_number)
 
 refit_data_manager = DatasetManager(
     data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
