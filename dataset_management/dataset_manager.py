@@ -110,8 +110,7 @@ class DatasetManager:
         output_file = os.path.join(self.save_path, f'{appliance_name_formatted}_{set_type}_H{house_number}.csv')
         dataframe['time'] = pd.to_datetime(dataframe['time'])  
         dataframe = dataframe.set_index('time')
-        dataframe = dataframe.resample(f'{self.sample_seconds}S').mean()
-        dataframe = dataframe.interpolate(method='linear')
+        dataframe = dataframe.resample(f'{self.sample_seconds}S').mean().fillna(method='backfill', limit=1)
         dataframe.reset_index(inplace=True)
         dataframe = dataframe[:min(self.num_rows, len(dataframe))] 
         # remove rows where the aggregate is less than the appliance values 
