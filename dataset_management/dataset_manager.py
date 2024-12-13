@@ -111,6 +111,7 @@ class DatasetManager:
         dataframe['time'] = pd.to_datetime(dataframe['time'])  
         dataframe = dataframe.set_index('time')
         dataframe = dataframe.resample(f'{self.sample_seconds}S').mean()
+        dataframe = dataframe.interpolate(method='linear')
         dataframe.reset_index(inplace=True)
         dataframe = dataframe[:min(self.num_rows, len(dataframe))] 
         # remove rows where the aggregate is less than the appliance values 
