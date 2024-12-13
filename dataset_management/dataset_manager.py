@@ -14,7 +14,6 @@ class DatasetManager:
 
         # Dynamically load house data
         self.house_data_map = self.loadData()
-        self.normalizeData()
         self.train_house, self.validation_house, self.test_houses = self.splitHouses()
 
 
@@ -56,7 +55,6 @@ class DatasetManager:
                 direction='nearest'
             )
             merged_data = merged_data[['time', 'aggregate', appliance_name_formatted]]
-
             house_data_map[int(house_number)] = merged_data
             num_houses_loaded += 1
 
@@ -65,21 +63,19 @@ class DatasetManager:
 
         return house_data_map
 
-    def normalizeData(self):
+    def normalizeData(self, data):
         """
         Normalize aggregate and appliance data globally for all houses.
         """
         appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
 
-
-        for house_number, data in self.house_data_map.items():
-            # Normalize aggregate data
-            data['aggregate'] = (data['aggregate'] - data['aggregate'].min()) / (data['aggregate'].max() - data['aggregate'].min())
+        data['aggregate'] = (data['aggregate'] - data['aggregate'].min()) / (data['aggregate'].max() - data['aggregate'].min())
 
             # Normalize appliance data
-            data[appliance_name_formatted] = (data[appliance_name_formatted] - data[appliance_name_formatted].min() )/ (data[appliance_name_formatted].max() - data[appliance_name_formatted].min())
+        data[appliance_name_formatted] = (data[appliance_name_formatted] - data[appliance_name_formatted].min() )/ (data[appliance_name_formatted].max() - data[appliance_name_formatted].min())
 
-            self.house_data_map[house_number] = data
+        return data
+
             
 
     def splitHouses(self):
@@ -112,9 +108,10 @@ class DatasetManager:
         dataframe = dataframe.set_index('time')
         dataframe = dataframe.resample(f'{self.sample_seconds}S').mean().fillna(method='backfill', limit=1)
         dataframe.reset_index(inplace=True)
-        dataframe = dataframe[:min(self.num_rows, len(dataframe))] 
-        # remove rows where the aggregate is less than the appliance values 
         dataframe = dataframe[dataframe['aggregate'] >= dataframe[appliance_name_formatted]]
+        dataframe = dataframe.head(self.num_rows)
+        dataframe = self.normalizeData(dataframe)
+        # remove rows where the aggregate is less than the appliance values 
         dataframe.to_csv(output_file, index=False)
         if self.debug:
             print(f"Saved {set_type} data for House {house_number} to {output_file}")
