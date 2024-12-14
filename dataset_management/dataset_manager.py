@@ -3,18 +3,15 @@ import os
 import random
 
 class DatasetManager:
-    def __init__(self, data_directory, save_path, appliance_name, debug=False, max_num_houses=None, num_days=10):
+    def __init__(self, data_directory, save_path, appliance_name, debug=False, max_num_houses=None):
         self.data_directory = data_directory
         self.save_path = save_path
         self.appliance_name = appliance_name.lower()
         self.debug = debug
         self.max_num_houses = max_num_houses
-        self.sample_seconds = 8
-        self.num_rows = int(num_days * 24 * 60 * 60 / self.sample_seconds)
-
-        # Dynamically load house data
+        self.num_rows = 10**5 
         self.house_data_map = self.loadData()
-        self.train_house, self.validation_house, self.test_houses = self.splitHouses()
+        self.train_houses, self.validation_house, self.test_houses = self.splitHouses()
 
 
 
@@ -68,11 +65,13 @@ class DatasetManager:
         Normalize aggregate and appliance data globally for all houses.
         """
         appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
+        aggregate_min = data['aggregate'].min()
+        aggregate_max = data['aggregate'].max()
 
-        data['aggregate'] = (data['aggregate'] - data['aggregate'].min()) / (data['aggregate'].max() - data['aggregate'].min())
+        data['aggregate'] = (data['aggregate'] - aggregate_min) / (aggregate_max - aggregate_min)
 
             # Normalize appliance data
-        data[appliance_name_formatted] = (data[appliance_name_formatted] - data[appliance_name_formatted].min() )/ (data[appliance_name_formatted].max() - data[appliance_name_formatted].min())
+        data[appliance_name_formatted] = (data[appliance_name_formatted] - aggregate_min )/ (aggregate_max - aggregate_min)
 
         return data
 
@@ -85,17 +84,20 @@ class DatasetManager:
         house_numbers = list(self.house_data_map.keys())
         random.shuffle(house_numbers)
 
-        # Assign one house for validation and one for testing
+        # Assign one house for validation
         validation_house = house_numbers.pop()
-        train_house = house_numbers.pop()
-        test_houses = house_numbers  # Remaining houses
+
+        # Split remaining houses into train and test sets
+        num_train_houses = len(house_numbers) // 2
+        train_houses = house_numbers[:num_train_houses]
+        test_houses = house_numbers[num_train_houses:]
 
         if self.debug:
-            print(f"Train house: {train_house}")
+            print(f"Train houses: {train_houses}")
             print(f"Validation house: {validation_house}")
             print(f"Test houses: {test_houses}")
 
-        return train_house, validation_house, test_houses
+        return train_houses, validation_house, test_houses
 
     def saveData(self, dataframe, set_type, house_number):
         """
@@ -104,37 +106,69 @@ class DatasetManager:
         appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
         os.makedirs(self.save_path, exist_ok=True)
         output_file = os.path.join(self.save_path, f'{appliance_name_formatted}_{set_type}_H{house_number}.csv')
-        dataframe['time'] = pd.to_datetime(dataframe['time'])  
-        dataframe = dataframe.set_index('time')
-        dataframe = dataframe.resample(f'{self.sample_seconds}S').mean().fillna(method='backfill', limit=1)
-        dataframe.reset_index(inplace=True)
-        dataframe = dataframe[dataframe['aggregate'] >= dataframe[appliance_name_formatted]]
-        dataframe = dataframe.head(self.num_rows)
-        dataframe = self.normalizeData(dataframe)
         # remove rows where the aggregate is less than the appliance values 
+        dataframe = self.normalizeData(dataframe)
+        dataframe = dataframe[dataframe['aggregate'] >= dataframe[appliance_name_formatted]]
+
         dataframe.to_csv(output_file, index=False)
         if self.debug:
             print(f"Saved {set_type} data for House {house_number} to {output_file}")
 
     def createTrainSet(self):
-        train_data = self.house_data_map[self.train_house]
-        self.saveData(train_data, 'train', self.train_house)
+        for house_number in self.train_houses:
+            # Find the window with the most appliance activity to avoid sparse data
+            appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
+            train_data = self.house_data_map[house_number]
+            window_size = self.num_rows  # 100,000 rows
+            step_size = window_size // 2
+            maximum_activity = 0 
+            best_window_start = None
+            best_window_end = None
+            train_data['abs_change'] = train_data[appliance_name_formatted].diff().abs()
+
+            # Generate overlapping windows
+            for start in range(0, len(train_data) - window_size + 1, step_size):
+                end = start + window_size
+
+                # Extract the current window
+                window = train_data.iloc[start:end]
+                activity = window['abs_change'].sum()
+
+                # Check if this window has higher activity
+                if activity > maximum_activity:
+                    if self.debug:
+                        print(f"New max activity: {activity} at window {start}-{end}")
+                    maximum_activity = activity
+                    best_window_start = start
+                    best_window_end = end
+
+            # Use the best window found
+            if best_window_start is not None and best_window_end is not None:
+                train_data = train_data.iloc[best_window_start:best_window_end]
+            else:
+                # Fallback if no window found
+                train_data = train_data[:window_size]
+
+            # Drop temporary column and save the data
+            train_data.drop(columns=['abs_change'], inplace=True)
+            self.saveData(train_data, 'train', house_number)
 
     def createValidationSet(self):
         validation_data = self.house_data_map[self.validation_house]
+        validation_data = validation_data[:min(self.num_rows, len(validation_data))]
         self.saveData(validation_data, 'validation', self.validation_house)
 
     def createTestSet(self):
         for house_number in self.test_houses:
-            train_data = self.house_data_map[house_number]
-            self.saveData(train_data, 'test', house_number)
+            test_data = self.house_data_map[house_number]
+            test_data = test_data[:min(self.num_rows, len(test_data))]
+            self.saveData(test_data, 'test', house_number)
 
 refit_data_manager = DatasetManager(
     data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
-    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_microwave"),
-    appliance_name='microwave',
+    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_washing_machine"),
+    appliance_name='washing machine',
     debug=True,
-    max_num_houses=4
 )
 
 refit_data_manager.createTrainSet()
