@@ -107,7 +107,8 @@ class DataSeparator:
         data['time']  = data['time'].astype(str).apply(lambda x: x.split('.')[0])
         self._save_data(house_number, appliance_column, data)
     
-    def _generate_timestamps(self, file_name, num_rows=86400):
+    def _generate_timestamps(self, file_name):
+        num_rows=86400
         base_date = file_name.split(".")[0]
         start_time = pd.to_datetime(base_date)
         return pd.date_range(start=start_time, periods=num_rows, freq='S')

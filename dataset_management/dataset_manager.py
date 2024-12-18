@@ -52,6 +52,10 @@ class DatasetManager:
                 direction='nearest'
             )
             merged_data = merged_data[['time', 'aggregate', appliance_name_formatted]]
+
+            # Remove rows where the appliance value is -1 (ECO data placeholder for missing data)
+            merged_data = merged_data[merged_data[appliance_name_formatted] != -1]
+            
             house_data_map[int(house_number)] = merged_data
             num_houses_loaded += 1
 
@@ -65,12 +69,14 @@ class DatasetManager:
         Normalize aggregate and appliance data globally for all houses.
         """
         appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
-        aggregate_min = data['aggregate'].min()
-        aggregate_max = data['aggregate'].max()
+        
+        # calculate the global min and max of the aggregate data from training houses
+        aggregate_min = min([self.house_data_map[house_number]['aggregate'].min() for house_number in self.train_houses])
+        aggregate_max = max([self.house_data_map[house_number]['aggregate'].max() for house_number in self.train_houses])
 
         data['aggregate'] = (data['aggregate'] - aggregate_min) / (aggregate_max - aggregate_min)
 
-            # Normalize appliance data
+         # Normalize appliance data
         data[appliance_name_formatted] = (data[appliance_name_formatted] - aggregate_min )/ (aggregate_max - aggregate_min)
 
         return data
@@ -107,8 +113,8 @@ class DatasetManager:
         os.makedirs(self.save_path, exist_ok=True)
         output_file = os.path.join(self.save_path, f'{appliance_name_formatted}_{set_type}_H{house_number}.csv')
         # remove rows where the aggregate is less than the appliance values 
-        dataframe = self.normalizeData(dataframe)
         dataframe = dataframe[dataframe['aggregate'] >= dataframe[appliance_name_formatted]]
+        dataframe = self.normalizeData(dataframe)
 
         dataframe.to_csv(output_file, index=False)
         if self.debug:
@@ -119,14 +125,14 @@ class DatasetManager:
             # Find the window with the most appliance activity to avoid sparse data
             appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
             train_data = self.house_data_map[house_number]
-            window_size = self.num_rows  # 100,000 rows
+            window_size = self.num_rows  
             step_size = window_size // 2
             maximum_activity = 0 
             best_window_start = None
             best_window_end = None
             train_data['abs_change'] = train_data[appliance_name_formatted].diff().abs()
 
-            # Generate overlapping windows
+   
             for start in range(0, len(train_data) - window_size + 1, step_size):
                 end = start + window_size
 
@@ -146,7 +152,6 @@ class DatasetManager:
             if best_window_start is not None and best_window_end is not None:
                 train_data = train_data.iloc[best_window_start:best_window_end]
             else:
-                # Fallback if no window found
                 train_data = train_data[:window_size]
 
             # Drop temporary column and save the data
@@ -164,13 +169,13 @@ class DatasetManager:
             test_data = test_data[:min(self.num_rows, len(test_data))]
             self.saveData(test_data, 'test', house_number)
 
-refit_data_manager = DatasetManager(
+eco_data_manager = DatasetManager(
     data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
     save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_washing_machine"),
     appliance_name='washing machine',
     debug=True,
 )
 
-refit_data_manager.createTrainSet()
-refit_data_manager.createValidationSet()
-refit_data_manager.createTestSet()
+eco_data_manager.createTrainSet()
+eco_data_manager.createValidationSet()
+eco_data_manager.createTestSet()
