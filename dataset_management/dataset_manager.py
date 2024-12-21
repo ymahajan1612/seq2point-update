@@ -94,9 +94,9 @@ class DatasetManager:
         validation_house = house_numbers.pop()
 
         # Split remaining houses into train and test sets
-        num_train_houses = len(house_numbers) // 2
-        train_houses = house_numbers[:num_train_houses]
-        test_houses = house_numbers[num_train_houses:]
+        num_test_houses = len(house_numbers) // 2
+        test_houses = house_numbers[:num_test_houses]
+        train_houses = house_numbers[num_test_houses:]
 
         if self.debug:
             print(f"Train houses: {train_houses}")
@@ -169,13 +169,13 @@ class DatasetManager:
             test_data = test_data[:min(self.num_rows, len(test_data))]
             self.saveData(test_data, 'test', house_number)
 
-eco_data_manager = DatasetManager(
-    data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
-    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_washing_machine"),
-    appliance_name='washing machine',
+ukdale_data_manager = DatasetManager(
+    data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
+    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_kettle"),
+    appliance_name='kettle',
     debug=True,
 )
 
-eco_data_manager.createTrainSet()
-eco_data_manager.createValidationSet()
-eco_data_manager.createTestSet()
+ukdale_data_manager.createTrainSet()
+ukdale_data_manager.createValidationSet()
+ukdale_data_manager.createTestSet()
