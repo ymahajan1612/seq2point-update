@@ -70,14 +70,12 @@ class DatasetManager:
         """
         appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
         
-        # calculate the global min and max of the aggregate data from training houses
-        aggregate_min = min([self.house_data_map[house_number]['aggregate'].min() for house_number in self.train_houses])
-        aggregate_max = max([self.house_data_map[house_number]['aggregate'].max() for house_number in self.train_houses])
+        aggregate_min = data['aggregate'].min()
+        aggregate_max = data['aggregate'].max()
 
         data['aggregate'] = (data['aggregate'] - aggregate_min) / (aggregate_max - aggregate_min)
+        data[appliance_name_formatted] = data[appliance_name_formatted] / (aggregate_max - aggregate_min)
 
-         # Normalize appliance data
-        data[appliance_name_formatted] = (data[appliance_name_formatted] - aggregate_min )/ (aggregate_max - aggregate_min)
 
         return data
 
