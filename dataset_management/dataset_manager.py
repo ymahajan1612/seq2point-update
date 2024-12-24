@@ -9,9 +9,9 @@ class DatasetManager:
         self.appliance_name = appliance_name.lower()
         self.debug = debug
         self.max_num_houses = max_num_houses
-        self.num_rows = 10**5 
         self.house_data_map = self.loadData()
         self.train_houses, self.validation_house, self.test_houses = self.splitHouses()
+        self.num_rows = 3 * (10**6)
 
 
 
@@ -74,7 +74,7 @@ class DatasetManager:
         aggregate_max = data['aggregate'].max()
 
         data['aggregate'] = (data['aggregate'] - aggregate_min) / (aggregate_max - aggregate_min)
-        data[appliance_name_formatted] = data[appliance_name_formatted] / (aggregate_max - aggregate_min)
+        data[appliance_name_formatted] = (data[appliance_name_formatted] - aggregate_min) / (aggregate_max - aggregate_min)
 
 
         return data
@@ -113,7 +113,6 @@ class DatasetManager:
         # remove rows where the aggregate is less than the appliance values 
         dataframe = dataframe[dataframe['aggregate'] >= dataframe[appliance_name_formatted]]
         dataframe = self.normalizeData(dataframe)
-
         dataframe.to_csv(output_file, index=False)
         if self.debug:
             print(f"Saved {set_type} data for House {house_number} to {output_file}")
@@ -123,7 +122,7 @@ class DatasetManager:
             # Find the window with the most appliance activity to avoid sparse data
             appliance_name_formatted = self.appliance_name.replace(" ", "_").lower()
             train_data = self.house_data_map[house_number]
-            window_size = self.num_rows  
+            window_size = min(self.num_rows, len(train_data))
             step_size = window_size // 2
             maximum_activity = 0 
             best_window_start = None
