@@ -14,10 +14,6 @@ class DatasetManager:
         with open("dataset_management\\ukdale_parameters.json", "r") as f:
             parameters = json.load(f)
 
-        self.aggregate_mean = parameters['aggregate']['mean']
-        self.aggregate_std = parameters['aggregate']['std']
-        self.appliance_mean = parameters[self.appliance_name_formatted]['mean']
-        self.appliance_std = parameters[self.appliance_name_formatted]['std']
         self.train_house = parameters[self.appliance_name_formatted]['train_house']
         self.test_house = parameters[self.appliance_name_formatted]['test_house']
         self.houses = parameters[self.appliance_name_formatted]['houses']
@@ -58,15 +54,6 @@ class DatasetManager:
             house_data_map[house] = merged_data
         return house_data_map
            
-
-    def normalizeData(self, data):
-        """
-        Normalize aggregate and appliance data globally for all houses.
-        """
-        data['aggregate'] = (data['aggregate'] - self.aggregate_mean) / self.aggregate_std  
-        data[self.appliance_name] = (data[self.appliance_name_formatted] - self.appliance_mean) / self.appliance_std   
-        return data
-
     def splitHouses(self):
         """
         Split houses into train, validation, and test sets.
@@ -95,9 +82,6 @@ class DatasetManager:
         """
         os.makedirs(self.save_path, exist_ok=True)
         output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_{set_type}_H{house_number}.csv')
-        # remove rows where the aggregate is less than the appliance values 
-        # dataframe = dataframe[dataframe['aggregate'] >= dataframe[self.appliance_name_formatted]]
-        dataframe = self.normalizeData(dataframe)
         dataframe.to_csv(output_file, index=False)
         if self.debug:
             print(f"Saved {set_type} data for House {house_number} to {output_file}")
@@ -114,11 +98,10 @@ class DatasetManager:
 
 ukdale_data_manager = DatasetManager(
     data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_kettle_original_normalisation"),
+    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_kettle_no_normalisation"),
     appliance_name='kettle',
     debug=True,
 )
 
 ukdale_data_manager.createTrainSet()
-# ukdale_data_manager.createValidationSet()
 ukdale_data_manager.createTestSet()
