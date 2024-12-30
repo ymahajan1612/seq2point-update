@@ -106,43 +106,6 @@ class DatasetManager:
         train_data = self.house_data_map[self.train_house]
         train_data = train_data[:min(self.num_rows, len(train_data))]
         self.saveData(train_data, 'train', self.train_house)
-
-    def createTrainSetWithMaxWindow(self):
-
-        # Find the window with the most appliance activity to avoid sparse data
-        train_data = self.house_data_map[self.train_house]
-        window_size = min(self.num_rows, len(train_data))
-        step_size = window_size // 2
-        maximum_activity = 0 
-        best_window_start = None
-        best_window_end = None
-        train_data['abs_change'] = train_data[self.appliance_name_formatted].diff().abs()
-
-
-        for start in range(0, len(train_data) - window_size + 1, step_size):
-            end = start + window_size
-
-            # Extract the current window
-            window = train_data.iloc[start:end]
-            activity = window['abs_change'].sum()
-
-            # Check if this window has higher activity
-            if activity > maximum_activity:
-                if self.debug:
-                    print(f"New max activity: {activity} at window {start}-{end}")
-                maximum_activity = activity
-                best_window_start = start
-                best_window_end = end
-
-        # Use the best window found
-        if best_window_start is not None and best_window_end is not None:
-            train_data = train_data.iloc[best_window_start:best_window_end]
-        else:
-            train_data = train_data[:window_size]
-
-        # Drop temporary column and save the data
-        train_data.drop(columns=['abs_change'], inplace=True)
-        self.saveData(train_data, 'train', self.train_house)
         
     def createTestSet(self):
         test_data = self.house_data_map[self.test_house]
