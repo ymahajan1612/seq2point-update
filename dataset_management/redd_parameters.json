@@ -1,0 +1,38 @@
+{
+    "aggregate" : {
+        "mean": 522,
+        "std": 814
+    },
+    
+    "microwave": {
+        "mean": 500,
+        "std": 800,
+        "houses": [1, 2, 3],
+        "train_house": 2,
+        "test_house": 1
+    },
+
+    "fridge": {
+    "mean": 200,
+    "std": 400,
+    "houses": [1, 2, 3],
+    "train_house": 2,
+    "test_house": 1
+    },
+
+    "dishwasher": {
+    "mean": 700,
+    "std": 1000,
+    "houses": [1, 2, 3],
+    "train_house": 2,
+    "test_house": 1
+    },
+
+    "washing_machine": {
+    "mean": 400,
+    "std": 700,
+    "houses": [1, 2, 3],
+    "train_house": 2,
+    "test_house": 1
+    }
+}
