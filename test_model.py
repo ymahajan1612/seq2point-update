@@ -32,7 +32,7 @@ class Tester:
 
         # set up the dataloader
         self.offset = 299
-        self.batch_size = 1000
+        self.batch_size = 32
         test_dataset = SlidingWindowDataset(test_csv_dir, offset=self.offset)
         self.test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 

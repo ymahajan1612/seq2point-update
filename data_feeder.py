@@ -1,6 +1,5 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
-import numpy as np
+from torch.utils.data import Dataset
 import pandas as pd
 
 class SlidingWindowDataset(Dataset):

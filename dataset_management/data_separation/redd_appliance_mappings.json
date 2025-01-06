@@ -1,21 +1,24 @@
 {
     "house 1": {
+        "1": "aggregate",
         "2": "aggregate",
         "5": "fridge",
         "6": "dishwasher",
         "11": "microwave",
         "13": "electric_space_heater",
         "14": "electric_stove"
-    },
-    "house 2": {
+        },
+        "house 2": {
+        "1": "aggregate",
         "2": "aggregate",
         "5": "electric_stove",
         "6": "microwave",
         "7": "washer_dryer",
         "9": "fridge",
         "10": "dishwasher"
-    },
-    "house 3": {
+        },
+        "house 3": {
+        "1": "aggregate",
         "2": "aggregate",
         "6": "ce_appliance",
         "7": "fridge",
@@ -23,8 +26,9 @@
         "9": "dishwasher",
         "10": "electric_furnace",
         "18": "smoke_alarm"
-    },
-    "house 4": {
+        },
+        "house 4": {
+        "1": "aggregate",
         "2": "aggregate",
         "4": "electric_furnace",
         "7": "washer_dryer",
@@ -32,8 +36,9 @@
         "12": "smoke_alarm",
         "15": "dishwasher",
         "20": "air_conditioner"
-    },
-    "house 5": {
+        },
+        "house 5": {
+        "1": "aggregate",
         "2": "aggregate",
         "3": "microwave",
         "6": "electric_furnace",
@@ -43,8 +48,9 @@
         "20": "dishwasher",
         "21": "waste_disposal_unit",
         "22": "ce_appliance"
-    },
-    "house 6": {
+        },
+        "house 6": {
+        "1": "aggregate",
         "2": "aggregate",
         "4": "washer_dryer",
         "5": "electric_stove",

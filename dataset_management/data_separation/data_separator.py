@@ -57,6 +57,8 @@ class DataSeparator:
                     self._process_ukdale_data(house_number, channel, appliance)
                 elif self.dataset_type == 'ECO':
                     self._process_eco_appliance_data(house_number, channel, appliance)
+                elif self.dataset_type == 'REDD':
+                    self._process_redd_data(house_number, channel, appliance)
 
             num_houses_processed += 1
             if num_houses_processed >= self.num_houses:
@@ -107,6 +109,24 @@ class DataSeparator:
         data['time']  = data['time'].astype(str).apply(lambda x: x.split('.')[0])
         self._save_data(house_number, appliance_column, data)
     
+    def _process_redd_data(self, house_number, channel, appliance):
+        dataset = nilmtk.DataSet(os.path.join(self.file_path, "redd.h5"))
+        appliance_column = "_".join(appliance.lower().split(" "))
+
+        if appliance.lower() == 'aggregate':
+            mains_data = dataset.buildings[int(house_number)].elec.mains().power_series_all_data()
+            data = pd.DataFrame({'time': mains_data.index, 'aggregate': mains_data.values})
+        else:
+            appliance_data = dataset.buildings[int(house_number)].elec[int(channel)].power_series_all_data()
+
+            data = pd.DataFrame({'time': appliance_data.index, appliance_column: appliance_data.values})
+        data['time'] = data['time'].astype(str).apply(lambda x: x.rsplit('-',1)[0])
+        data.dropna(inplace=True)
+        if self.num_rows:
+            data = data.iloc[:min(len(data),self.num_rows)]
+        self._save_data(house_number, appliance_column, data)
+        
+        
     def _generate_timestamps(self, file_name):
         num_rows=86400
         base_date = file_name.split(".")[0]
@@ -193,7 +213,7 @@ def main():
     parser.add_argument('save_path', type=str, help='Directory to save separated data.')
     parser.add_argument('--num_houses', type=int, default=20, help='Number of houses to process (default: 20).')
     parser.add_argument('--appliance_name', type=str, default=None, help='Filter by specific appliance name (optional).')
-    parser.add_argument('--dataset_type', type=str, choices=['REFIT', 'UKDALE', 'ECO'], required=True, help='Dataset type.')
+    parser.add_argument('--dataset_type', type=str, choices=['REFIT', 'UKDALE', 'ECO', 'REDD'], required=True, help='Dataset type.')
     parser.add_argument('--num_rows', type=int, default=None, help='Number of rows of data to process (optional).')
 
     args = parser.parse_args()

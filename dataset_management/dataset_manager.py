@@ -4,14 +4,15 @@ import random
 import json
 
 class DatasetManager:
-    def __init__(self, data_directory, save_path, appliance_name, debug=False, max_num_houses=None):
+    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses=None):
         self.debug = debug
         self.data_directory = data_directory
         self.save_path = save_path
+        self.dataset = dataset.lower()
         self.appliance_name = appliance_name.lower()
         self.appliance_name_formatted = self.appliance_name.replace(" ", "_") 
 
-        with open("dataset_management\\ukdale_parameters.json", "r") as f:
+        with open(os.path.join("dataset_management", f"{self.dataset}_parameters.json"), "r") as f:
             parameters = json.load(f)
 
         self.train_house = parameters[self.appliance_name_formatted]['train_house']
@@ -96,12 +97,23 @@ class DatasetManager:
         test_data = test_data[:min(self.num_rows, len(test_data))]
         self.saveData(test_data, 'test', self.test_house)
 
-ukdale_data_manager = DatasetManager(
-    data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_kettle_no_normalisation"),
-    appliance_name='kettle',
-    debug=True,
-)
+# ukdale_data_manager = DatasetManager(
+#     data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
+#     save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_kettle"),
+#     dataset='ukdale',
+#     appliance_name='kettle',
+#     debug=True,
+# )
 
-ukdale_data_manager.createTrainSet()
-ukdale_data_manager.createTestSet()
+appliances = ['microwave', 'dishwasher', 'fridge']
+
+for appliance in appliances:
+    redd_data_manager = DatasetManager(
+        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_appliance_data",f"REDD_data_{appliance}"),
+        dataset='redd',
+        appliance_name=appliance,
+        debug=True,
+    )
+    redd_data_manager.createTrainSet()
+    redd_data_manager.createTestSet()
