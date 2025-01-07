@@ -3,19 +3,19 @@ import torch
 from torch.utils.data import DataLoader
 import pandas as pd
 import numpy as np
-
+from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
 
 class Tester:
-    def __init__(self, model, model_state_dir, test_csv_dir, appliance, dataset):
+    def __init__(self, model_name, model_state_dir, test_csv_dir, appliance, dataset):
         
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.criterion = nn.MSELoss()
 
         # set up the model and its parameters
-        self.model = model
+        self.model = Seq2PointFactory.createModel(model_name)
         checkpoint = torch.load(model_state_dir, map_location=self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.to(self.device)

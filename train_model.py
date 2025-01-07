@@ -3,22 +3,23 @@ import torch
 from torch.utils.data import DataLoader
 import os
 import json
-
+from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
 
+
 class Trainer:
-    def __init__(self, model, train_csv_dir, validation_csv_dir, appliance, dataset, device="cuda"):
-        self.model = model
+    def __init__(self, model_name, train_csv_dir, validation_csv_dir, appliance, dataset, device="cuda"):
+        self.model = Seq2PointFactory.createModel(model_name)
 
         # set up the loss function and optimiser
         self.criterion = nn.MSELoss()
         beta_1 = 0.9
         beta_2 = 0.999
         learning_rate = 0.001
-        self.optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
 
         self.appliance = appliance
         self.appliance_name_formatted = self.appliance.replace("_", " ")
