@@ -9,7 +9,7 @@ class Seq2PointFactory:
         """
         Creates a Seq2Point model of the specified type.
         """
-        if model_type == 'simple':
+        if model_type.lower() == 'seq2pointsimple':
             return Seq2PointSimple(**kwargs)
         else:
             raise ValueError('Unknown model type: {}'.format(model_type))
