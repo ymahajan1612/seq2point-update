@@ -12,8 +12,7 @@ import matplotlib.pyplot as plt
 
 class Trainer:
     def __init__(self, model_name, train_csv_dir, validation_csv_dir, appliance, dataset, device="cuda"):
-        self.model_name = model_name
-        self.model = Seq2PointFactory.createModel(self.model_name)
+        self.model = Seq2PointFactory.createModel(model_name)
 
         # set up the loss function and optimiser
         self.criterion = nn.MSELoss()
@@ -23,7 +22,7 @@ class Trainer:
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
 
         self.appliance = appliance
-        self.appliance_name_formatted = self.appliance.replace(" ", "_")
+        self.appliance_name_formatted = self.appliance.replace("_", " ")
         self.dataset = dataset
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
@@ -55,7 +54,7 @@ class Trainer:
         self.appliance_mean = params[self.appliance_name_formatted]['mean']
         self.appliance_std = params[self.appliance_name_formatted]['std']
 
-    def trainModel(self, num_epochs=10):
+    def train(self, num_epochs=10):
         for epoch in range(num_epochs):
             self.model.train()
             train_loss = 0
@@ -97,7 +96,7 @@ class Trainer:
                         'aggregate_std': self.aggregate_std,
                         'appliance_mean': self.appliance_mean,
                         'appliance_std': self.appliance_std
-                }, f"{self.appliance}_{self.dataset}_{self.model_name}.pth")
+                }, f"{self.appliance}_{self.dataset}.pth")
                 self.counter = 0
             else:
                 self.counter += 1

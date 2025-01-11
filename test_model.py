@@ -27,7 +27,7 @@ class Tester:
         self.appliance_std = checkpoint['appliance_std']
 
         self.appliance = appliance
-        self.appliance_name_formatted = self.appliance.replace(" ", "_")
+        self.appliance_name_formatted = self.appliance.replace("_", " ")
         self.dataset = dataset
 
         # set up the dataloader
@@ -93,16 +93,11 @@ class Tester:
 
     def getMetrics(self):
         """
-        Calculate the metrics for the test 
-        mean absolute error (MAE) and signal absolute error (SAE)
+        Calculate the metrics for the test.
         """
         MAE = np.mean(np.abs(np.array(self.predictions) - np.array(self.ground_truth)))
-        
-        ground_truth_sum = sum(self.ground_truth)
-        predictions_sum = sum(self.predictions)
-        SAE = np.abs(ground_truth_sum - predictions_sum)/ground_truth_sum
-
-        return MAE, SAE
+        MSE = np.mean((np.array(self.predictions) - np.array(self.ground_truth)) ** 2)
+        return MAE, MSE
 
     def plotResults(self):
         """
