@@ -22,7 +22,7 @@ class Trainer:
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
 
         self.appliance = appliance
-        self.appliance_name_formatted = self.appliance.replace("_", " ")
+        self.appliance_name_formatted = self.appliance.replace(" ", "_")
         self.dataset = dataset
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)

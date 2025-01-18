@@ -27,7 +27,7 @@ class Tester:
         self.appliance_std = checkpoint['appliance_std']
 
         self.appliance = appliance
-        self.appliance_name_formatted = self.appliance.replace("_", " ")
+        self.appliance_name_formatted = self.appliance.replace(" ", "_")
         self.dataset = dataset
 
         # set up the dataloader
