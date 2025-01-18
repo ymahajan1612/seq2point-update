@@ -95,9 +95,13 @@ class Tester:
         """
         Calculate the metrics for the test.
         """
+        # calculate mean absolute error
         MAE = np.mean(np.abs(np.array(self.predictions) - np.array(self.ground_truth)))
-        MSE = np.mean((np.array(self.predictions) - np.array(self.ground_truth)) ** 2)
-        return MAE, MSE
+        
+        # calculate signal aggregate error
+        SAE = abs(sum(self.predictions) - sum(self.ground_truth))/sum(self.ground_truth)
+
+        return MAE, SAE
 
     def plotResults(self):
         """
