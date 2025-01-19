@@ -1,8 +1,8 @@
-import argparse
 import json
 import pandas as pd
+from pandas import HDFStore
 import os
-import nilmtk  
+import nilmtk
 from datetime import datetime
 import re
 
@@ -90,41 +90,38 @@ class DataSeparator:
         self._save_data(house_number, column_name, data)
 
     def _process_ukdale_data(self, house_number, channel, appliance):
-        dataset = nilmtk.DataSet(os.path.join(self.file_path, "ukdale.h5"))
         appliance_column = "_".join(appliance.lower().split(" "))
-
-        if appliance.lower() == 'aggregate':
-            mains_data = dataset.buildings[int(house_number)].elec.mains().power_series_all_data()
-            if self.num_rows:
-                mains_data = mains_data[:min(len(mains_data),self.num_rows)]
-            data = pd.DataFrame({'time': mains_data.index, 'aggregate': mains_data.values})
-        else:
-            appliance_data = dataset.buildings[int(house_number)].elec[int(channel)].power_series_all_data()
-            if self.num_rows:
-                appliance_data = appliance_data[:min(len(appliance_data),self.num_rows)]
-
-            data = pd.DataFrame({'time': appliance_data.index, appliance_column: appliance_data.values})
+        
+        key = f'/building{house_number}/elec/meter{channel}'
+        data = None
+        with HDFStore(os.path.join(self.file_path, "ukdale.h5")) as store:
+            df = store.get(key).head(self.num_rows)
+            data = pd.DataFrame({'time': df.index, appliance_column: df.values.flatten()})
 
         data['time'] = data['time'].astype(str).apply(lambda x: x.split('+')[0])
-        data['time']  = data['time'].astype(str).apply(lambda x: x.split('.')[0])
         self._save_data(house_number, appliance_column, data)
     
     def _process_redd_data(self, house_number, channel, appliance):
-        dataset = nilmtk.DataSet(os.path.join(self.file_path, "redd.h5"))
         appliance_column = "_".join(appliance.lower().split(" "))
-
-        if appliance.lower() == 'aggregate':
-            mains_data = dataset.buildings[int(house_number)].elec.mains().power_series_all_data()
-            data = pd.DataFrame({'time': mains_data.index, 'aggregate': mains_data.values})
+        data = None
+        dataset = nilmtk.DataSet(os.path.join(self.file_path, "redd.h5"))
+        if appliance_column == 'aggregate':
+            mains_data1 = dataset.buildings[int(house_number)].elec[1].power_series_all_data()
+            mains_df1 = pd.DataFrame({'time': mains_data1.index, 'aggregate_1': mains_data1.values})
+            mains_data2 = dataset.buildings[int(house_number)].elec[2].power_series_all_data()
+            mains_df2 = pd.DataFrame({'time': mains_data2.index, 'aggregate_2': mains_data2.values})
+            mains_df1.set_index('time', inplace=True)
+            mains_df2.set_index('time', inplace=True)
+            data = mains_df1.join(mains_df2, how='outer')
+            data['aggregate'] = data.iloc[:].sum(axis=1)
+            data.reset_index(inplace=True)
+            data.drop(columns=['aggregate_1', 'aggregate_2'], inplace=True)
         else:
             appliance_data = dataset.buildings[int(house_number)].elec[int(channel)].power_series_all_data()
-
             data = pd.DataFrame({'time': appliance_data.index, appliance_column: appliance_data.values})
-        data['time'] = data['time'].astype(str).apply(lambda x: x.rsplit('-',1)[0])
         data.dropna(inplace=True)
-        if self.num_rows:
-            data = data.iloc[:min(len(data),self.num_rows)]
-        self._save_data(house_number, appliance_column, data)
+        data['time'] = data['time'].astype(str).apply(lambda x: x.rsplit('-',1)[0])
+        self._save_data(house_number, appliance_column, data.head(self.num_rows))   
         
         
     def _generate_timestamps(self, file_name):
@@ -207,29 +204,13 @@ class DataSeparator:
         print(f"Saved: {output_file}")
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Separate energy dataset data by appliance.')
-    parser.add_argument('file_path', type=str, help='Path to the dataset directory.')
-    parser.add_argument('save_path', type=str, help='Directory to save separated data.')
-    parser.add_argument('--num_houses', type=int, default=20, help='Number of houses to process (default: 20).')
-    parser.add_argument('--appliance_name', type=str, default=None, help='Filter by specific appliance name (optional).')
-    parser.add_argument('--dataset_type', type=str, choices=['REFIT', 'UKDALE', 'ECO', 'REDD'], required=True, help='Dataset type.')
-    parser.add_argument('--num_rows', type=int, default=None, help='Number of rows of data to process (optional).')
 
-    args = parser.parse_args()
-    print(f"Processing {args.dataset_type} dataset...")
-    print(f"Input file path: {args.file_path}")
-    print(f"Data will be saved to: {args.save_path}")
-
-    separator = DataSeparator(
-        file_path=args.file_path,
-        save_path=args.save_path,
-        num_houses=args.num_houses,
-        appliance_name=args.appliance_name,
-        dataset_type=args.dataset_type,
-        num_rows = args.num_rows
-    )
-    separator.process_data()
-
-if __name__ == "__main__":
-    main()
+data_separator = DataSeparator(
+    file_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents"),
+    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated_updated"),
+    num_houses=20,
+    appliance_name=None,
+    dataset_type="REDD",
+    num_rows=2000000
+)
+data_separator.process_data()
