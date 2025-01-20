@@ -48,7 +48,7 @@ class DatasetManager:
 
             merged_data = aggregate_data.join(appliance_data, how='outer')
             merged_data.index = pd.to_datetime(merged_data.index)
-            merged_data = merged_data.resample('5S').mean().fillna(method='backfill', limit=1)
+            merged_data = merged_data.resample('8S').mean().fillna(method='backfill', limit=1)
             merged_data.dropna(inplace=True)
             merged_data.reset_index(inplace=True)
 
@@ -105,14 +105,13 @@ class DatasetManager:
 #     debug=True,
 # )
 
-ukdale_appliance = ["microwave", "dishwasher","fridge"]
+ukdale_appliances = ["microwave", "dishwasher", "fridge"]
 
-for appliance in ukdale_appliance:
-    print("Appliance: ", appliance)
+for appliance in ukdale_appliances:
     ukdale_appliance_manager = DatasetManager(
         data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_appliance_data"),
-        dataset='REDD',
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "redd_appliance_data"),
+        dataset='redd',
         appliance_name=appliance,
         debug=True,
     )
