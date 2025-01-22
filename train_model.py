@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 import os
 import json
+import pandas as pd
 from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import torch.optim as optim
@@ -11,8 +12,9 @@ import matplotlib.pyplot as plt
 
 
 class Trainer:
-    def __init__(self, model_name, train_csv_dir, validation_csv_dir, appliance, dataset, device="cuda"):
-        self.model = Seq2PointFactory.createModel(model_name)
+    def __init__(self, model_name, train_csv_dir, validation_csv_dir, appliance, dataset, model_save_dir, device="cuda"):
+        self.model_name = model_name
+        self.model = Seq2PointFactory.createModel(self.model_name)
 
         # set up the loss function and optimiser
         self.criterion = nn.MSELoss()
@@ -26,6 +28,8 @@ class Trainer:
         self.dataset = dataset
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
+
+        self.model_save_dir = model_save_dir
 
         # create the dataloaders from the CSVs
         self.offset = 299
@@ -46,13 +50,12 @@ class Trainer:
         self.val_losses = []
 
         # fetch parameters for normalisation
-        params_dir = os.path.join("dataset_management", f"{self.dataset}_parameters.json")
-        with open(params_dir, "r") as f:
-            params = json.load(f)
-        self.aggregate_mean = params['aggregate']['mean']
-        self.aggregate_std = params['aggregate']['std']
-        self.appliance_mean = params[self.appliance_name_formatted]['mean']
-        self.appliance_std = params[self.appliance_name_formatted]['std']
+        train_df = pd.read_csv(train_csv_dir)
+        self.aggregate_mean = train_df["aggregate"].mean()
+        self.aggregate_std = train_df["aggregate"].std()
+        self.appliance_mean = train_df[self.appliance].mean()
+        self.appliance_std = train_df[self.appliance].std()
+        
 
     def train(self, num_epochs=10):
         for epoch in range(num_epochs):
@@ -96,7 +99,7 @@ class Trainer:
                         'aggregate_std': self.aggregate_std,
                         'appliance_mean': self.appliance_mean,
                         'appliance_std': self.appliance_std
-                }, f"{self.appliance}_{self.dataset}.pth")
+                }, os.path.join(self.model_save_dir,f"{self.appliance}_{self.dataset}_{self.model_name}.pth"))
                 self.counter = 0
             else:
                 self.counter += 1
