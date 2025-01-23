@@ -1,28 +1,29 @@
+
 {
 
     "kettle": {
-        "houses": [1, 2],
-        "train_house": 1,
-        "test_house": 2
+        "houses": [1, 2, 3, 5],
+        "train_houses": [1,5],
+        "test_house": [2, 3]
     },
     "microwave": {
-        "houses": [1, 2],
-        "train_house": 1,
-        "test_house": 2
+        "houses": [1, 2, 5],
+        "train_house": [1, 5],
+        "test_house": [2]
     },
     "fridge": {
         "houses": [1, 2],
-        "train_house": 1,
-        "test_house": 2
+        "train_house": [1],
+        "test_house": [2]
     },
     "dishwasher": {
-        "houses": [1, 2],
-        "train_house": 1,
-        "test_house": 2
+        "houses": [1, 2, 5],
+        "train_house": [1, 5],
+        "test_house": [2]
     },
     "washing_machine": {
         "houses": [1, 2],
-        "train_house": 1,
-        "test_house": 2
+        "train_house": [1],
+        "test_house": [2]
     }
 }

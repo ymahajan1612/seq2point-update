@@ -1,10 +1,9 @@
 import pandas as pd
 import os
-import random
 import json
 
 class DatasetManager:
-    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses=None):
+    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = 4, num_rows = 1 * (10**6)):
         self.debug = debug
         self.data_directory = data_directory
         self.save_path = save_path
@@ -12,16 +11,34 @@ class DatasetManager:
         self.appliance_name = appliance_name.lower()
         self.appliance_name_formatted = self.appliance_name.replace(" ", "_") 
 
-        with open(os.path.join("dataset_management", f"{self.dataset}_parameters.json"), "r") as f:
-            parameters = json.load(f)
+        self.max_num_houses = max_num_houses
 
-        self.train_house = parameters[self.appliance_name_formatted]['train_house']
-        self.test_house = parameters[self.appliance_name_formatted]['test_house']
-        self.houses = parameters[self.appliance_name_formatted]['houses']
+        self.houses = self.getHouses()
+        if not self.houses:
+            raise ValueError(f"{self.appliance_name} not found in dataset {self.dataset}")
 
-        self.num_rows = 1 * (10**6)
+        self.num_rows = num_rows
 
         self.house_data_map = self.loadData()
+    
+    def getHouses(self):
+        """
+        Get houses for a given dataset and appliance.
+        """
+        appliance_mappings_dir = os.path.join("dataset_management","data_separation", f"{self.dataset}_appliance_mappings.json")
+        houses = []
+        with open(appliance_mappings_dir, 'r') as f:
+            appliance_mappings = json.load(f)
+        for house in appliance_mappings:
+            appliance_list = appliance_mappings[house].values()
+            if self.appliance_name_formatted in appliance_list:
+                house_number = int(house.split(" ")[1])
+                houses.append(house_number)
+            if len(houses) == self.max_num_houses:
+                break
+        if self.debug:
+            print(f"Using houses: {houses}")
+        return houses
 
     def loadData(self):
         """
@@ -54,66 +71,36 @@ class DatasetManager:
 
             house_data_map[house] = merged_data
         return house_data_map
-           
-    def splitHouses(self):
-        """
-        Split houses into train, validation, and test sets.
-        """
-        house_numbers = list(self.house_data_map.keys())
-        random.shuffle(house_numbers)
 
-        # Assign one house for validation
-        validation_house = house_numbers.pop()
-
-        # Split remaining houses into train and test sets
-        num_test_houses = len(house_numbers) // 2
-        test_houses = house_numbers[:num_test_houses]
-        train_houses = house_numbers[num_test_houses:]
-
-        if self.debug:
-            print(f"Train houses: {train_houses}")
-            print(f"Validation house: {validation_house}")
-            print(f"Test houses: {test_houses}")
-
-        return train_houses, validation_house, test_houses
-
-    def saveData(self, dataframe, set_type, house_number):
+    def saveData(self, dataframe, house_number):
         """
         Save data to appropriate directories for train, validation, or test sets.
         """
         os.makedirs(self.save_path, exist_ok=True)
-        output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_{set_type}_H{house_number}.csv')
+        output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_H{house_number}.csv')
         dataframe.to_csv(output_file, index=False)
         if self.debug:
-            print(f"Saved {set_type} data for House {house_number} to {output_file}")
+            print(f"Saved data for House {house_number} to {output_file}")
 
-    def createTrainSet(self):
-        train_data = self.house_data_map[self.train_house]
-        train_data = train_data[:min(self.num_rows, len(train_data))]
-        self.saveData(train_data, 'train', self.train_house)
-        
-    def createTestSet(self):
-        test_data = self.house_data_map[self.test_house]
-        test_data = test_data[:min(self.num_rows, len(test_data))]
-        self.saveData(test_data, 'test', self.test_house)
+    def createData(self):
+        for house in self.house_data_map:
+            data = self.house_data_map[house]
+            print(data)
+            data = data[:min(self.num_rows, len(data))]
+            self.saveData(data, house)
 
-# ukdale_data_manager = DatasetManager(
-#     data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-#     save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_kettle"),
-#     dataset='ukdale',
-#     appliance_name='kettle',
-#     debug=True,
-# )
 
-ukdale_appliances = ["microwave", "dishwasher", "fridge"]
 
-for appliance in ukdale_appliances:
+ukdale_appliances = ["microwave", "dishwasher", "fridge", "kettle", "washing machine"]
+redd_appliances = ["microwave", "dishwasher", "fridge"]
+for appliance in test:
     ukdale_appliance_manager = DatasetManager(
-        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "redd_appliance_data"),
-        dataset='redd',
+        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliance_data"),
+        dataset='ukdale',
         appliance_name=appliance,
         debug=True,
+        max_num_houses=4,
     )
-    ukdale_appliance_manager.createTrainSet()
-    ukdale_appliance_manager.createTestSet()
+    ukdale_appliance_manager.createData()
+
