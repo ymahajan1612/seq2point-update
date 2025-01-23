@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 
 
 class Trainer:
-    def __init__(self, model_name, train_csv_dir, validation_csv_dir, appliance, dataset, model_save_dir, device="cuda"):
+    def __init__(self, model_name, train_csv_dir, validation_csv_dir, appliance, dataset, model_save_dir, window_length=599, device="cuda"):
         self.model_name = model_name
-        self.model = Seq2PointFactory.createModel(self.model_name)
+        self.model = Seq2PointFactory.createModel(self.model_name, window_length)
 
         # set up the loss function and optimiser
         self.criterion = nn.MSELoss()
@@ -32,10 +32,9 @@ class Trainer:
         self.model_save_dir = model_save_dir
 
         # create the dataloaders from the CSVs
-        self.offset = 299
         self.batch_size = 1000
-        train_dataset = SlidingWindowDataset(train_csv_dir, self.offset)
-        validation_dataset = SlidingWindowDataset(validation_csv_dir, self.offset)
+        train_dataset = SlidingWindowDataset(train_csv_dir, self.model.getWindowSize())
+        validation_dataset = SlidingWindowDataset(validation_csv_dir, self.model.getWindowSize())
         self.train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
         self.validation_loader = DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=False)
 

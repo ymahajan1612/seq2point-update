@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
 
 class Seq2PointBase(ABC, nn.Module):
     """
@@ -15,6 +16,12 @@ class Seq2PointBase(ABC, nn.Module):
         Loads the model from a file.
         """
         self.load_state_dict(torch.load(file_path))
+    
+    def getWindowSize(self):
+        """
+        Returns the input window size.
+        """
+        return self.input_window_length
 
     @abstractmethod
     def forward(self, x):
@@ -26,11 +33,11 @@ class Seq2PointBase(ABC, nn.Module):
 
 class Seq2PointSimple(Seq2PointBase):
     """
-    Standard Seq2Point model.
+    Standard Seq2Point model with 5 CNN layers.
     """
 
-    def __init__(self):
-        super(Seq2PointSimple, self).__init__(input_window_length=599)
+    def __init__(self, input_window_length=599):
+        super(Seq2PointSimple, self).__init__(input_window_length=input_window_length)
 
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=30, kernel_size=(10, 1), stride=(1, 1), padding='same')
         self.conv2 = nn.Conv2d(in_channels=30, out_channels=30, kernel_size=(8, 1), stride=(1, 1), padding='same')  

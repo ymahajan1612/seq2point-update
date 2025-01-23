@@ -7,7 +7,7 @@ class SlidingWindowDataset(Dataset):
     PyTorch Dataset for loading sliding window data for training
     and testing seq2point models.
     """
-    def __init__(self, file_name, offset, crop=None):
+    def __init__(self, file_name, window_size, crop=None):
         """
         PyTorch Dataset for loading sliding window data.
 
@@ -19,9 +19,9 @@ class SlidingWindowDataset(Dataset):
         data = pd.read_csv(file_name, nrows=crop)
         self.inputs = data.iloc[:, 1].values  # Aggregate
         self.outputs = data.iloc[:, 2].values  # Appliance
-        self.offset = offset
-        self.window_size = 2 * offset + 1
-        self.num_windows = len(self.inputs) - 2 * offset
+        self.window_size = window_size
+        self.offset = int((0.5 * window_size) - 1)
+        self.num_windows = len(self.inputs) - 2 * self.offset
 
     def __len__(self):
         return self.num_windows

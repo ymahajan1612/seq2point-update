@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 
 
 class Tester:
-    def __init__(self, model_name, model_state_dir, test_csv_dir, appliance, dataset):
+    def __init__(self, model_name, model_state_dir, test_csv_dir, appliance, dataset, window_length=599):
         
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.criterion = nn.MSELoss()
 
         # set up the model and its parameters
-        self.model = Seq2PointFactory.createModel(model_name)
+        self.model = Seq2PointFactory.createModel(model_name, window_length)
         checkpoint = torch.load(model_state_dir, map_location=self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.to(self.device)
@@ -31,9 +31,9 @@ class Tester:
         self.dataset = dataset
 
         # set up the dataloader
-        self.offset = 299
         self.batch_size = 32
-        test_dataset = SlidingWindowDataset(test_csv_dir, offset=self.offset)
+        self.offset = int((0.5 * window_length) - 1)
+        test_dataset = SlidingWindowDataset(test_csv_dir, self.model.getWindowSize())
         self.test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
         # set up a dataframe for the results
