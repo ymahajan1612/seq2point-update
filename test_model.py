@@ -10,7 +10,15 @@ import matplotlib.pyplot as plt
 
 class Tester:
     def __init__(self, model_name, model_state_dir, test_csv_dir, appliance, dataset, window_length=599):
-        
+        """
+        Tester class for testing the model
+        model_name (str): Name of the model to test.
+        model_state_dir (str): Directory to load the model state from.
+        test_csv_dir (str): Directory to load the test CSV from.
+        appliance (str): Name of the appliance to test the model for.
+        dataset (str): Name of the dataset.
+        window_length (int): Length of the input window.
+        """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.criterion = nn.MSELoss()
 
@@ -33,7 +41,7 @@ class Tester:
         # set up the dataloader
         self.batch_size = 32
         self.offset = int((0.5 * window_length) - 1)
-        test_dataset = SlidingWindowDataset(test_csv_dir, self.model.getWindowSize())
+        test_dataset = SlidingWindowDataset([test_csv_dir], self.model.getWindowSize())
         self.test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
         # set up a dataframe for the results

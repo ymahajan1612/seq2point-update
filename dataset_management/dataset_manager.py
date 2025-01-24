@@ -68,7 +68,7 @@ class DatasetManager:
             merged_data = merged_data.resample('8S').mean().fillna(method='backfill', limit=1)
             merged_data.dropna(inplace=True)
             merged_data.reset_index(inplace=True)
-
+            merged_data = merged_data.head(self.num_rows)
             house_data_map[house] = merged_data
         return house_data_map
 
@@ -85,18 +85,16 @@ class DatasetManager:
     def createData(self):
         for house in self.house_data_map:
             data = self.house_data_map[house]
-            print(data)
-            data = data[:min(self.num_rows, len(data))]
             self.saveData(data, house)
 
 
 
 ukdale_appliances = ["microwave", "dishwasher", "fridge", "kettle", "washing machine"]
 redd_appliances = ["microwave", "dishwasher", "fridge"]
-for appliance in test:
+for appliance in ukdale_appliances:
     ukdale_appliance_manager = DatasetManager(
         data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliance_data"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliance_data_large"),
         dataset='ukdale',
         appliance_name=appliance,
         debug=True,
