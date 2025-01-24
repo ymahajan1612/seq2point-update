@@ -3,14 +3,14 @@ import os
 import json
 
 class DatasetManager:
-    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = 4, num_rows = 1 * (10**6)):
+    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = 4, num_rows = 1 * (10**6), validation_percentage=13):
         self.debug = debug
         self.data_directory = data_directory
         self.save_path = save_path
         self.dataset = dataset.lower()
         self.appliance_name = appliance_name.lower()
         self.appliance_name_formatted = self.appliance_name.replace(" ", "_") 
-
+        self.validation_percentage = validation_percentage
         self.max_num_houses = max_num_houses
 
         self.houses = self.getHouses()
@@ -31,9 +31,11 @@ class DatasetManager:
             appliance_mappings = json.load(f)
         for house in appliance_mappings:
             appliance_list = appliance_mappings[house].values()
+            # Check if appliance is present in the house
             if self.appliance_name_formatted in appliance_list:
                 house_number = int(house.split(" ")[1])
                 houses.append(house_number)
+            # Stop if we have reached the maximum number of houses
             if len(houses) == self.max_num_houses:
                 break
         if self.debug:
@@ -63,29 +65,49 @@ class DatasetManager:
             aggregate_data.set_index('time', inplace=True)
             appliance_data.set_index('time', inplace=True)
 
+            # Merge the aggregate and appliance data on timestamp and resample to 5 seconds
             merged_data = aggregate_data.join(appliance_data, how='outer')
             merged_data.index = pd.to_datetime(merged_data.index)
-            merged_data = merged_data.resample('8S').mean().fillna(method='backfill', limit=1)
+            merged_data = merged_data.resample('6S').mean().fillna(method='backfill', limit=1)
             merged_data.dropna(inplace=True)
             merged_data.reset_index(inplace=True)
             merged_data = merged_data.head(self.num_rows)
             house_data_map[house] = merged_data
         return house_data_map
 
-    def saveData(self, dataframe, house_number):
+    def saveData(self, dataframe, house_number, is_validation=False):
         """
         Save data to appropriate directories for train, validation, or test sets.
         """
         os.makedirs(self.save_path, exist_ok=True)
-        output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_H{house_number}.csv')
+        if not is_validation:
+            output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_H{house_number}.csv')
+        else:
+            output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_H{house_number}_validation.csv')
         dataframe.to_csv(output_file, index=False)
         if self.debug:
-            print(f"Saved data for House {house_number} to {output_file}")
+            if not is_validation:
+                print(f"Saved data for House {house_number} to {output_file}")
+            else:
+                
+                print(f"Saved validation data for House {house_number} to {output_file}")
 
     def createData(self):
-        for house in self.house_data_map:
+        # use a chunk of a the first house as validation data
+        house_to_split = self.houses[0]
+        train_data = self.house_data_map[house_to_split]
+        total_rows = sum([len(data) for data in self.house_data_map.values()])
+        validation_rows = int((self.validation_percentage / 100) * total_rows)
+        validation_data = train_data.tail(validation_rows)
+        validation_data.reset_index(drop=True, inplace=True)
+        train_data.drop(train_data.index[-validation_rows:], inplace=True)
+        self.saveData(train_data, house_to_split)
+        self.saveData(validation_data, house_to_split, is_validation=True)
+        for house in self.houses[1:]:
             data = self.house_data_map[house]
             self.saveData(data, house)
+
+        
 
 
 
@@ -94,7 +116,7 @@ redd_appliances = ["microwave", "dishwasher", "fridge"]
 for appliance in ukdale_appliances:
     ukdale_appliance_manager = DatasetManager(
         data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliance_data_large"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliance_washer"),
         dataset='ukdale',
         appliance_name=appliance,
         debug=True,
