@@ -116,11 +116,12 @@ redd_appliances = ["microwave", "dishwasher", "fridge"]
 for appliance in ukdale_appliances:
     ukdale_appliance_manager = DatasetManager(
         data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliance_washer"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliances"),
         dataset='ukdale',
         appliance_name=appliance,
         debug=True,
         max_num_houses=4,
+        num_rows=500000
     )
     ukdale_appliance_manager.createData()
 

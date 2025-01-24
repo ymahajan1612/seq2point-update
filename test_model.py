@@ -6,7 +6,7 @@ import numpy as np
 from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import matplotlib.pyplot as plt
-
+import time 
 
 class Tester:
     def __init__(self, model_name, model_state_dir, test_csv_dir, appliance, dataset, window_length=599):
@@ -46,6 +46,7 @@ class Tester:
 
         # set up a dataframe for the results
         test_df = pd.read_csv(test_csv_dir, low_memory=False)
+        self.dt = 0
         self.timestamps = test_df["time"].iloc[self.offset:-self.offset].reset_index(drop=True)
         self.predictions = []
         self.ground_truth = []
@@ -57,7 +58,7 @@ class Tester:
         """
         self.model.eval()
         test_loss = 0
-
+        time_start = time.time()
         with torch.no_grad():
                 for inputs, targets in self.test_loader:
                         inputs_normalised = (inputs - self.aggregate_mean) / self.aggregate_std
@@ -85,6 +86,8 @@ class Tester:
         self.aggregate = [max(0, agg) for agg in self.aggregate]
 
         test_loss /= len(self.test_loader)
+        time_end = time.time()
+        self.dt = time_end - time_start
         print(f"Test Loss: {test_loss}")
     
     def getResults(self):
@@ -102,6 +105,7 @@ class Tester:
     def getMetrics(self):
         """
         Calculate the metrics for the test.
+        Also return the time taken for disaggreation.
         """
         # calculate mean absolute error
         MAE = np.mean(np.abs(np.array(self.predictions) - np.array(self.ground_truth)))
@@ -109,7 +113,7 @@ class Tester:
         # calculate signal aggregate error
         SAE = abs(sum(self.predictions) - sum(self.ground_truth))/sum(self.ground_truth)
 
-        return MAE, SAE
+        return MAE, SAE, self.dt
 
     def plotResults(self):
         """

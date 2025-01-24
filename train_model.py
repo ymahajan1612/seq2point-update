@@ -68,7 +68,7 @@ class Trainer:
         self.appliance_std = combined_train_df[self.appliance_name_formatted].std() 
         
 
-    def train(self, num_epochs=10):
+    def trainModel(self, num_epochs=10):
         for epoch in range(num_epochs):
             self.model.train()
             train_loss = 0
