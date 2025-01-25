@@ -33,7 +33,7 @@ class Seq2PointBase(ABC, nn.Module):
 
 class Seq2PointSimple(Seq2PointBase):
     """
-    Standard Seq2Point model with 5 CNN layers.
+    Standard Seq2Point model with 5 convolutional layers.
     """
 
     def __init__(self, input_window_length=599):
@@ -60,4 +60,38 @@ class Seq2PointSimple(Seq2PointBase):
         x = self.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-    
+
+class ShortSeq2Point(Seq2PointBase):
+    """
+    Short seq2point model with 4 convolutional layers
+    Dropout (0.5) is applied after each convolutional layer
+    sequence length is 50 - 100
+    """
+    def __init__(self, input_window_length=100):
+        super(ShortSeq2Point, self).__init__(input_window_length=input_window_length)
+
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=30, kernel_size=10, stride=1, padding='same')
+        self.conv2 = nn.Conv1d(in_channels=30, out_channels=30, kernel_size=8, stride=1, padding='same')
+        self.conv3 = nn.Conv1d(in_channels=30, out_channels=40, kernel_size=6, stride=1, padding='same')
+        self.conv4 = nn.Conv1d(in_channels=40, out_channels=50, kernel_size=5, stride=1, padding='same')
+        self.dropout = nn.Dropout(0.5)
+        self.flatten = nn.Flatten()
+        self.fc1 = nn.Linear(50 * self.input_window_length, 1024)
+        self.fc2 = nn.Linear(1024, 1)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = x.unsqueeze(1)
+        x = self.relu(self.conv1(x))
+        x = self.dropout(x)
+        x = self.relu(self.conv2(x))
+        x = self.dropout(x)
+        x = self.relu(self.conv3(x))
+        x = self.dropout(x)
+        x = self.relu(self.conv4(x))
+        x = self.dropout(x)
+        x = self.flatten(x)
+        x = self.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
