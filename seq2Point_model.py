@@ -61,3 +61,47 @@ class Seq2PointSimple(Seq2PointBase):
         x = self.fc2(x)
         return x
     
+class Seq2pointLSTM(Seq2PointBase):
+    """
+    Seq2Point model with LSTM layers.
+    """
+    def __init__(self, input_window_length=599):
+        super().__init__(input_window_length)
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=64, kernel_size=10, stride=1, padding="same")
+        self.conv2 = nn.Conv1d(in_channels=64, out_channels=128, kernel_size=8, stride=1, padding="same")
+        self.conv3 = nn.Conv1d(in_channels=128, out_channels=256, kernel_size=8, stride=1, padding="same")
+        self.conv4 = nn.Conv1d(in_channels=256, out_channels=512, kernel_size=6, stride=1, padding="same")
+        self.conv5 = nn.Conv1d(in_channels=512, out_channels=256, kernel_size=6, stride=1, padding="same")
+
+        self.lstm1 = nn.LSTM(input_size=256, hidden_size=32, batch_first=True)
+        self.lstm2 = nn.LSTM(input_size=32, hidden_size=64, batch_first=True)
+
+        self.fc1 = nn.Linear(64,128)
+        self.fc2 = nn.Linear(128, 1)
+
+        self.relu = nn.ReLU()
+    
+    def forward(self, x):
+        x = x.unsqueeze(1)
+
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+        x = self.relu(self.conv3(x))
+        x = self.relu(self.conv4(x))
+        x = self.relu(self.conv5(x))
+
+        x = x.permute(0, 2, 1)
+
+        x, _ = self.lstm1(x)
+        x, _ = self.lstm2(x)
+
+        mid_point = x.size(1) // 2
+        x = x[:, mid_point, :]
+        x = self.relu(self.fc1(x))
+        x = self.fc2(x)
+
+        return x
+
+
+
+    
