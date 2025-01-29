@@ -2,12 +2,12 @@ from data_feeder import SlidingWindowDataset
 import torch
 from torch.utils.data import DataLoader
 import os
-import json
 import pandas as pd
 from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 
@@ -33,6 +33,8 @@ class Trainer:
         beta_2 = 0.999
         learning_rate = 0.001
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
+        # reduce learning rate by factor on plateau (2 consecutive epochs with no improvement)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', factor=0.1, patience=2, verbose=True)
 
         self.appliance = appliance
         self.appliance_name_formatted = self.appliance.replace(" ", "_")
@@ -100,6 +102,7 @@ class Trainer:
             train_loss /= len(self.train_loader)
             val_loss /= len(self.validation_loader)
             print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss}, Val Loss: {val_loss}")
+            self.scheduler.step(val_loss)
 
             if val_loss < self.best_val_loss - self.min_delta:
                 print(f"Validation loss improved from {self.best_val_loss} to {val_loss}. Saving model...")
