@@ -1,13 +1,23 @@
 import torch
-from torch import nn
-from torch.nn import functional as F
+import torch.nn as nn
+
 class Attention(nn.Module):
-    def __init__(self, feature_dim):
+    """
+    Additive attention mechanism for sequence data.
+    """
+    def __init__(self, dim):
         super(Attention, self).__init__()
-        self.attention_weights = nn.Linear(feature_dim, 1)
-        
+        self.score_layer = nn.Linear(dim, 1, bias=False)  #
+
     def forward(self, x):
-        attention_weights = self.attention_weights(x)
-        attention_weights = F.softmax(attention_weights, dim=1)
-        weighted_sum = torch.sum(x * attention_weights, dim=1)
-        return weighted_sum
+        # Compute raw  attention scores
+        scores = self.score_layer(x)
+        scores = scores.squeeze(-1)  
+
+        # Normalize scores to get attention weights
+        attn_weights = torch.softmax(scores, dim=1)
+
+        attn_weights_3d = attn_weights.unsqueeze(-1)  
+        reweighted_sequence = x * attn_weights_3d  
+
+        return reweighted_sequence

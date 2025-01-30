@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import torch.nn as nn
 import torch
-import torch.nn.functional as F
+from attention import Attention
 
 class Seq2PointBase(ABC, nn.Module):
     """
@@ -60,4 +60,69 @@ class Seq2PointSimple(Seq2PointBase):
         x = self.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-    
+
+class Seq2pointAttention(Seq2PointBase):
+    """
+    Attention-enabled Seq2Point model using bidirectional LSTM.
+    """
+    def __init__(self, input_window_length=100):
+        super(Seq2pointAttention, self).__init__(input_window_length=input_window_length)
+
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=4, stride=1, padding="same")
+
+        self.bilstm1 = nn.LSTM(input_size=16, hidden_size=128, num_layers=1, batch_first=True, bidirectional=True)
+        self.bilstm2 = nn.LSTM(input_size=256, hidden_size=256, num_layers=1, batch_first=True, bidirectional=True)
+
+        self.fc1 = nn.Linear(input_window_length, input_window_length)  
+
+        self.attention = Attention(input_window_length)  
+
+        self.flatten = nn.Flatten()
+        self.fc2 = nn.Linear(input_window_length * 512, 128) 
+        self.dropout = nn.Dropout(0.2)
+        self.fc3 = nn.Linear(128, 1)
+
+    def forward(self, x):
+        print("Input shape:", x.shape)
+
+        x = x.unsqueeze(1)
+        print("After unsqueeze (for Conv1D):", x.shape)
+
+        x = self.conv1(x)
+        print("After Conv1D:", x.shape)
+
+        x = x.permute(0, 2, 1)
+        print("After permute (for LSTM):", x.shape)
+
+        x, _ = self.bilstm1(x)
+        print("After BiLSTM1:", x.shape)
+
+        x = self.dropout(x)
+        print("After Dropout1:", x.shape)
+
+        x, _ = self.bilstm2(x)
+        print("After BiLSTM2:", x.shape)
+
+        x = self.dropout(x)
+        print("After Dropout2:", x.shape)
+
+        x = x.permute(0, 2, 1)
+        x = self.fc1(x)
+        print("After FC1:", x.shape)
+
+        reweighted_sequence = self.attention(x)
+        
+        x = self.flatten(reweighted_sequence)
+        print("After Flatten:", x.shape)
+ 
+        # Dense layers
+        x = self.fc2(x)  # (batch, 128)
+        print("After FC2:", x.shape)
+
+        x = self.dropout(x)  # (batch, 128)
+        print("After Dropout3:", x.shape)
+
+        x = self.fc3(x)  # (batch, 1)
+        print("After FC3 (output):", x.shape)
+
+        return x

@@ -11,5 +11,7 @@ class Seq2PointFactory:
         """
         if model_type.lower() == 'seq2pointsimple':
             return Seq2PointSimple(input_window_length=input_window_length)
+        elif model_type.lower() == 'seq2pointattention':
+            return Seq2pointAttention(input_window_length=input_window_length)
         else:
             raise ValueError('Unknown model type: {}'.format(model_type))
