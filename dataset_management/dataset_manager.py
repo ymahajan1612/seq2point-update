@@ -20,6 +20,7 @@ class DatasetManager:
         self.num_rows = num_rows
 
         self.house_data_map = self.loadData()
+        self.normalisation_parameters = dict()
     
     def getHouses(self):
         """
@@ -91,21 +92,53 @@ class DatasetManager:
             else:
                 
                 print(f"Saved validation data for House {house_number} to {output_file}")
+    
+    def normaliseData(self, df, params):
+        """
+        Normalise data using mean and standard deviation.
+        """
+        df['aggregate'] = (df['aggregate'] - params['aggregate_mean']) / params['aggregate_std']
+        df[self.appliance_name_formatted] = (df[self.appliance_name_formatted] - params[f'{self.appliance_name_formatted}_mean']) / params[f'{self.appliance_name_formatted}_std']
+        return df
 
     def createData(self):
         # use a chunk of a the first house as validation data
         house_to_split = self.houses[0]
         train_data = self.house_data_map[house_to_split]
+
+        params = dict()
+        params['aggregate_mean'] = train_data['aggregate'].mean()
+        params['aggregate_std'] = train_data['aggregate'].std()
+        params[f'{self.appliance_name_formatted}_mean'] = train_data[self.appliance_name_formatted].mean()
+        params[f'{self.appliance_name_formatted}_std'] = train_data[self.appliance_name_formatted].std()
+        self.normalisation_parameters[house_to_split] = params
+
         total_rows = sum([len(data) for data in self.house_data_map.values()])
         validation_rows = int((self.validation_percentage / 100) * total_rows)
         validation_data = train_data.tail(validation_rows)
         validation_data.reset_index(drop=True, inplace=True)
         train_data.drop(train_data.index[-validation_rows:], inplace=True)
+        
+        train_data = self.normaliseData(train_data, params)
+        validation_data = self.normaliseData(validation_data, params)
         self.saveData(train_data, house_to_split)
         self.saveData(validation_data, house_to_split, is_validation=True)
         for house in self.houses[1:]:
+            params = dict()
             data = self.house_data_map[house]
+            params['aggregate_mean'] = data['aggregate'].mean()
+            params['aggregate_std'] = data['aggregate'].std()
+            params[f'{self.appliance_name_formatted}_mean'] = data[self.appliance_name_formatted].mean()
+            params[f'{self.appliance_name_formatted}_std'] = data[self.appliance_name_formatted].std()
+            self.normalisation_parameters[house] = params
+            data = self.normaliseData(data, params)
             self.saveData(data, house)
+        # Save the normalisation parameters as a JSON file
+        normalisation_params_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_normalisation_parameters.json')
+        with open(normalisation_params_file, 'w') as f:
+            json.dump(self.normalisation_parameters, f, indent=4)
+        if self.debug:
+            print(f"Saved normalisation parameters to {normalisation_params_file}")
 
         
 
@@ -116,7 +149,7 @@ redd_appliances = ["microwave", "dishwasher", "fridge"]
 for appliance in ukdale_appliances:
     ukdale_appliance_manager = DatasetManager(
         data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliances"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliances_small"),
         dataset='ukdale',
         appliance_name=appliance,
         debug=True,
