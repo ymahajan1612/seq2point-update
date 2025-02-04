@@ -59,27 +59,19 @@ class Trainer:
         self.train_losses = []
         self.val_losses = []
 
-        # fetch parameters for normalisation
-        train_dfs = [pd.read_csv(train_csv_dir, low_memory=False) for train_csv_dir in train_csv_dirs]
-        combined_train_df = pd.concat(train_dfs, axis=0)
-        self.aggregate_mean = combined_train_df["aggregate"].mean()
-        self.aggregate_std = combined_train_df["aggregate"].std()
-        self.appliance_mean = combined_train_df[self.appliance_name_formatted].mean()
-        self.appliance_std = combined_train_df[self.appliance_name_formatted].std() 
-        
+
 
     def trainModel(self, num_epochs=10):
         for epoch in range(num_epochs):
             self.model.train()
             train_loss = 0
             for inputs, targets in self.train_loader:
-                inputs_normalised = (inputs - self.aggregate_mean) / self.aggregate_std
-                targets_normalised = (targets - self.appliance_mean) / self.appliance_std
-                inputs_normalised, targets_normalised = inputs_normalised.to(self.device), targets_normalised.to(self.device)
+
+                inputs, targets = inputs.to(self.device), targets.to(self.device)
 
                 self.optimizer.zero_grad()
-                outputs = self.model(inputs_normalised)
-                loss = self.criterion(outputs.squeeze(-1), targets_normalised)
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs.squeeze(-1), targets)
                 loss.backward()
                 self.optimizer.step()
 
@@ -89,12 +81,10 @@ class Trainer:
             val_loss = 0
             with torch.no_grad():
                 for inputs, targets in self.validation_loader:
-                    inputs_normalised = (inputs - self.aggregate_mean) / self.aggregate_std
-                    targets_normalised = (targets - self.appliance_mean) / self.appliance_std
-                    inputs_normalised, targets_normalised = inputs_normalised.to(self.device), targets_normalised.to(self.device)
+                    inputs, targets = inputs.to(self.device), targets.to(self.device)
 
-                    outputs = self.model(inputs_normalised)
-                    loss = self.criterion(outputs.squeeze(-1), targets_normalised)
+                    outputs = self.model(inputs)
+                    loss = self.criterion(outputs.squeeze(-1), targets)
                     val_loss += loss.item()
 
             train_loss /= len(self.train_loader)
@@ -107,11 +97,7 @@ class Trainer:
                 if not os.path.exists(self.model_save_dir):
                     os.makedirs(self.model_save_dir)
                 torch.save({
-                        'model_state_dict': self.model.state_dict(),
-                        'aggregate_mean': self.aggregate_mean,
-                        'aggregate_std': self.aggregate_std,
-                        'appliance_mean': self.appliance_mean,
-                        'appliance_std': self.appliance_std
+                        'model_state_dict': self.model.state_dict()
                 }, os.path.join(self.model_save_dir,f"{self.appliance}_{self.dataset}_{self.model_name}.pth"))
                 self.counter = 0
             else:
