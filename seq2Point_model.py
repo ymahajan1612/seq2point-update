@@ -60,4 +60,37 @@ class Seq2PointSimple(Seq2PointBase):
         x = self.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-    
+
+class Seq2PointCNNGRU(Seq2PointBase):
+    """
+    A hybrid seq2point model with CNN and GRU 
+    """
+
+    def __init__(self, input_window_length=599):
+        super(Seq2PointCNNGRU, self).__init__(input_window_length=input_window_length)
+
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=30, kernel_size=10, stride=1, padding="same")
+        self.conv2 = nn.Conv1d(in_channels=30, out_channels=40, kernel_size=8, stride=1, padding="same")
+
+
+        self.gru = nn.GRU(input_size=40, hidden_size=128, num_layers=2, batch_first=True)
+
+        # **Fully Connected Layers**
+        self.fc1 = nn.Linear(128, 64)
+        self.fc2 = nn.Linear(64, 1)
+
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = x.unsqueeze(1)
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+
+        x = x.permute(0, 2, 1)
+        x, _ = self.gru(x)
+        x = x[:, -1, :]
+
+        x = self.relu(self.fc1(x))
+        x = self.fc2(x)
+
+        return x
