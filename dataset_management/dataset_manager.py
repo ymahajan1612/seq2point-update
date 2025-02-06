@@ -145,7 +145,7 @@ class DatasetManager:
 
 
 ukdale_appliances = ["microwave", "dishwasher", "fridge", "kettle", "washing machine"]
-redd_appliances = ["microwave", "dishwasher", "fridge"]
+redd_appliances = ["microwave", "dishwasher", "fridge", "washer_dryer"]
 for appliance in ukdale_appliances:
     ukdale_appliance_manager = DatasetManager(
         data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),

@@ -10,13 +10,13 @@ class DataSeparator:
     """
     Class to separate energy dataset data by appliance for each house.
     """
-    def __init__(self, file_path, save_path, num_houses, appliance_name=None, dataset_type='REFIT', num_rows=None):
+    def __init__(self, file_path, save_path, num_houses=None, appliance_name=None, dataset_type='REFIT', num_rows=None):
         self.file_path = file_path
         self.save_path = save_path
-        self.num_houses = num_houses
         self.appliance_name = appliance_name.lower() if appliance_name else None
         self.dataset_type = dataset_type.upper()
         self.num_rows = num_rows
+        self.num_houses = num_houses
 
         # Load data ranges for ECO dataset as the range differs for aggegate and appliance data
         self.eco_data_ranges = None
@@ -25,7 +25,7 @@ class DataSeparator:
                 self.eco_data_ranges = json.load(f)
 
         # Load appliance mappings for the dataset
-        self.mapping_file = f"{dataset_type.lower()}_appliance_mappings.json"
+        self.mapping_file = os.path.join("dataset_management","data_separation",f"{dataset_type.lower()}_appliance_mappings.json")
         self.output_dir = os.path.join(save_path, f'{dataset_type.upper()}_data_separated')
         os.makedirs(self.output_dir, exist_ok=True)
 
@@ -61,8 +61,9 @@ class DataSeparator:
                     self._process_redd_data(house_number, channel, appliance)
 
             num_houses_processed += 1
-            if num_houses_processed >= self.num_houses:
-                break
+            if self.num_houses:
+                if num_houses_processed >= self.num_houses:
+                    break
 
     def _process_refit_data(self, house_number, channel, appliance):
         refit_file = os.path.join(self.file_path, f"CLEAN_House{house_number}.csv")
@@ -207,8 +208,7 @@ class DataSeparator:
 
 data_separator = DataSeparator(
     file_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents"),
-    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated_updated"),
-    num_houses=20,
+    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated"),
     appliance_name=None,
     dataset_type="REDD",
     num_rows=2000000
