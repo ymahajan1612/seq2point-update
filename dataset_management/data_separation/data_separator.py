@@ -10,12 +10,11 @@ class DataSeparator:
     """
     Class to separate energy dataset data by appliance for each house.
     """
-    def __init__(self, file_path, save_path, num_houses=None, appliance_name=None, dataset_type='REFIT', num_rows=None):
+    def __init__(self, file_path, save_path, num_houses=None, appliance_name=None, dataset_type='REFIT'):
         self.file_path = file_path
         self.save_path = save_path
         self.appliance_name = appliance_name.lower() if appliance_name else None
         self.dataset_type = dataset_type.upper()
-        self.num_rows = num_rows
         self.num_houses = num_houses
 
         # Load data ranges for ECO dataset as the range differs for aggegate and appliance data
@@ -78,15 +77,11 @@ class DataSeparator:
                 refit_file, header=0, names=['time', 'aggregate'],
                 usecols=[0, 2], na_filter=False, parse_dates=True, memory_map=True
             )
-            if self.num_rows:
-                data = data.iloc[:min(len(data),self.num_rows)]
         else:
             data = pd.read_csv(
                 refit_file, header=0, names=['time', column_name],
                 usecols=[0, int(channel) + 2], na_filter=False, parse_dates=True, memory_map=True
             )
-            if self.num_rows:
-                data = data.iloc[:min(len(data),self.num_rows)]
 
         self._save_data(house_number, column_name, data)
 
@@ -96,7 +91,7 @@ class DataSeparator:
         key = f'/building{house_number}/elec/meter{channel}'
         data = None
         with HDFStore(os.path.join(self.file_path, "ukdale.h5")) as store:
-            df = store.get(key).head(self.num_rows)
+            df = store.get(key)
             data = pd.DataFrame({'time': df.index, appliance_column: df.values.flatten()})
 
         data['time'] = data['time'].astype(str).apply(lambda x: x.split('+')[0])
@@ -122,7 +117,7 @@ class DataSeparator:
             data = pd.DataFrame({'time': appliance_data.index, appliance_column: appliance_data.values})
         data.dropna(inplace=True)
         data['time'] = data['time'].astype(str).apply(lambda x: x.rsplit('-',1)[0])
-        self._save_data(house_number, appliance_column, data.head(self.num_rows))   
+        self._save_data(house_number, appliance_column, data)   
         
         
     def _generate_timestamps(self, file_name):
@@ -156,8 +151,6 @@ class DataSeparator:
             all_aggregate_data.append(aggregate_df)
         
         aggregate_data = pd.concat(all_aggregate_data, axis=0)
-        if self.num_rows:
-            aggregate_data = aggregate_data.iloc[:min(len(aggregate_data),self.num_rows)]
         self._save_data(house_number, 'aggregate', aggregate_data)
 
     def _process_eco_appliance_data(self, house_number, channel, appliance):
@@ -191,8 +184,6 @@ class DataSeparator:
 
             if all_plug_data:
                 appliance_df = pd.concat(all_plug_data, axis=0)
-                if self.num_rows:
-                    appliance_df = appliance_df.iloc[:min(len(appliance_df),self.num_rows)]
 
                 self._save_data(house_number, column_name, appliance_df)
             
@@ -200,17 +191,19 @@ class DataSeparator:
     def _save_data(self, house_number, appliance_column, data):
         house_dir = os.path.join(self.output_dir, f"House_{house_number}")
         os.makedirs(house_dir, exist_ok=True)
-        output_file = os.path.join(house_dir, f"{appliance_column}_H{house_number}.csv")
-        data.to_csv(output_file, index=False, header=True)
+
+        # Save data to HDF5 file
+        output_file = os.path.join(house_dir, f"{appliance_column}_H{house_number}.h5")
+
+        data.to_hdf(output_file, key='dataset', mode='w')
         print(f"Saved: {output_file}")
 
 
 
 data_separator = DataSeparator(
-    file_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents"),
-    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated"),
+    file_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", 'UKDALE'),
+    save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents"),
     appliance_name=None,
-    dataset_type="REDD",
-    num_rows=2000000
+    dataset_type="UKDALE",
 )
 data_separator.process_data()
