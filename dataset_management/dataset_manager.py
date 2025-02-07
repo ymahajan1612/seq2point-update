@@ -3,7 +3,7 @@ import os
 import json
 
 class DatasetManager:
-    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = 4, num_rows = 1 * (10**6), validation_percentage=13):
+    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = None, num_rows = 1 * (10**6), validation_percentage=13):
         self.debug = debug
         self.data_directory = data_directory
         self.save_path = save_path
@@ -37,8 +37,9 @@ class DatasetManager:
                 house_number = int(house.split(" ")[1])
                 houses.append(house_number)
             # Stop if we have reached the maximum number of houses
-            if len(houses) == self.max_num_houses:
-                break
+            if self.max_num_houses:
+                if len(houses) == self.max_num_houses:
+                    break
         if self.debug:
             print(f"Using houses: {houses}")
         return houses
@@ -119,8 +120,8 @@ class DatasetManager:
         validation_data.reset_index(drop=True, inplace=True)
         train_data.drop(train_data.index[-validation_rows:], inplace=True)
         
-        train_data = self.normaliseData(train_data, params)
-        validation_data = self.normaliseData(validation_data, params)
+        # train_data = self.normaliseData(train_data, params)
+        # validation_data = self.normaliseData(validation_data, params)
         self.saveData(train_data, house_to_split)
         self.saveData(validation_data, house_to_split, is_validation=True)
         for house in self.houses[1:]:
@@ -131,7 +132,7 @@ class DatasetManager:
             params[f'{self.appliance_name_formatted}_mean'] = data[self.appliance_name_formatted].mean()
             params[f'{self.appliance_name_formatted}_std'] = data[self.appliance_name_formatted].std()
             self.normalisation_parameters[house] = params
-            data = self.normaliseData(data, params)
+            # data = self.normaliseData(data, params)
             self.saveData(data, house)
         # Save the normalisation parameters as a JSON file
         normalisation_params_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_normalisation_parameters.json')
@@ -146,15 +147,14 @@ class DatasetManager:
 
 ukdale_appliances = ["microwave", "dishwasher", "fridge", "kettle", "washing machine"]
 redd_appliances = ["microwave", "dishwasher", "fridge", "washer_dryer"]
-for appliance in ukdale_appliances:
+for appliance in redd_appliances:
     ukdale_appliance_manager = DatasetManager(
-        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ukdale_appliances_small"),
-        dataset='ukdale',
+        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_appliances_not_normalised"),
+        dataset='REDD',
         appliance_name=appliance,
         debug=True,
-        max_num_houses=4,
-        num_rows=500000
+        num_rows=1000000
     )
     ukdale_appliance_manager.createData()
 

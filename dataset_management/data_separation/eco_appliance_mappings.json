@@ -1,65 +1,61 @@
 {
-"House 1" : 
-{
-    "01": "fridge",
-    "02": "dryer",
-    "03": "coffee_machine",
-    "04": "Kettle",
-    "05": "washing_machine",
-    "06": "computer",
-    "07": "freezer"
-},
-
-"House 2" : {
-    "01": "tablet",
-    "02": "dishwasher",
-    "03": "air_exhaust",
-    "04": "fridge",
-    "05": "entertainment",
-    "06": "freezer",
-    "07": "kettle",
-    "08": "lamp",
-    "09": "laptop",
-    "10": "stove",
-    "11": "television",
-    "12": "stereo"
-}
-,
-"House 3" : {
-    "01": "tablet",
-    "02": "freezer",
-    "03": "coffee_machine",
-    "04": "computer",
-    "05": "fridge",
-    "06": "kettle",
-    "07": "entertainment"
-},
-"House 4" : {
-    "01": "fridge",
-    "03": "lamp",
-    "05": "freezer",
-    "06": "tablet",
-    "07": "entertainment",
-    "08": "microwave"
-}
-,
-"House 5" : {
-    "01": "tablet",
-    "02": "coffee_machine",
-    "03": "fountain",
-    "04": "microwave",
-    "05": "fridge",
-    "06": "entertainment",
-    "07": "computer",
-    "08": "kettle"
-},
-"House 6" : {
-    "01": "lamp",
-    "02": "laptop",
-    "03": "router",
-    "04": "coffee_machine",
-    "05": "entertainment",
-    "06": "fridge",
-    "07": "kettle"
-}
+    "House 1": {
+        "01": "fridge",
+        "02": "dryer",
+        "03": "coffee_machine",
+        "04": "kettle",
+        "05": "washing_machine",
+        "06": "computer",
+        "07": "freezer"
+    },
+    "House 2": {
+        "01": "tablet",
+        "02": "dishwasher",
+        "03": "air_exhaust",
+        "04": "fridge",
+        "05": "entertainment",
+        "06": "freezer",
+        "07": "kettle",
+        "08": "lamp",
+        "09": "laptop",
+        "10": "stove",
+        "11": "television",
+        "12": "stereo"
+    },
+    "House 3": {
+        "01": "tablet",
+        "02": "freezer",
+        "03": "coffee_machine",
+        "04": "computer",
+        "05": "fridge",
+        "06": "kettle",
+        "07": "entertainment"
+    },
+    "House 4": {
+        "01": "fridge",
+        "03": "lamp",
+        "05": "freezer",
+        "06": "tablet",
+        "07": "entertainment",
+        "08": "microwave"
+    },
+    "House 5": {
+        "01": "tablet",
+        "02": "coffee_machine",
+        "03": "fountain",
+        "04": "microwave",
+        "05": "fridge",
+        "06": "entertainment",
+        "07": "computer",
+        "08": "kettle"
+    },
+    "House 6": {
+        "01": "lamp",
+        "02": "laptop",
+        "03": "router",
+        "04": "coffee_machine",
+        "05": "entertainment",
+        "06": "fridge",
+        "07": "kettle"
+    }
 }
