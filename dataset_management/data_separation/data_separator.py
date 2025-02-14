@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+import numpy as np
 from pandas import HDFStore
 import os
 import nilmtk
@@ -20,7 +21,8 @@ class DataSeparator:
         # Load data ranges for ECO dataset as the range differs for aggegate and appliance data
         self.eco_data_ranges = None
         if self.dataset_type == "ECO":
-            with open("eco_data_ranges.json", "r") as f:
+            date_ranges_file = os.path.join("dataset_management","data_separation","eco_data_ranges.json")
+            with open(date_ranges_file, "r") as f:
                 self.eco_data_ranges = json.load(f)
 
         # Load appliance mappings for the dataset
@@ -179,6 +181,7 @@ class DataSeparator:
                 plug_df = pd.read_csv(file_path, header=None, usecols=[0], names=[column_name])
                 plug_df['time'] = self._generate_timestamps(file_name)
                 plug_df = plug_df[['time', column_name]]
+                plug_df.replace(-1, np.NaN, inplace=True)
 
                 all_plug_data.append(plug_df)
 
@@ -201,9 +204,9 @@ class DataSeparator:
 
 
 data_separator = DataSeparator(
-    file_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", 'UKDALE'),
+    file_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ECO"),
     save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents"),
     appliance_name=None,
-    dataset_type="UKDALE",
+    dataset_type="eco",
 )
 data_separator.process_data()

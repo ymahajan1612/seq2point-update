@@ -41,7 +41,7 @@ class DatasetManager:
                 if len(houses) == self.max_num_houses:
                     break
         if self.debug:
-            print(f"Using houses: {houses}")
+            print(f"Using houses: {houses} for appliance {self.appliance_name}")
         return houses
 
     def loadData(self):
@@ -53,30 +53,62 @@ class DatasetManager:
         for house in self.houses:
             house_dir = f"House_{house}"
             house_path = os.path.join(self.data_directory, house_dir)
-            aggregate_file = os.path.join(house_path, f'aggregate_H{house}.csv')
-            appliance_file = os.path.join(house_path, f'{self.appliance_name_formatted}_H{house}.csv')
+            aggregate_file = os.path.join(house_path, f'aggregate_H{house}.h5')
+            appliance_file = os.path.join(house_path, f'{self.appliance_name_formatted}_H{house}.h5')
 
             if not os.path.exists(aggregate_file) or not os.path.exists(appliance_file):
                 continue
 
             # Load data
-            aggregate_data = pd.read_csv(aggregate_file)
-            appliance_data = pd.read_csv(appliance_file)
+            aggregate_data = pd.read_hdf(aggregate_file)
+            appliance_data = pd.read_hdf(appliance_file)
 
+            aggregate_data['time'] = pd.to_datetime(aggregate_data['time'])
 
             aggregate_data.set_index('time', inplace=True)
             appliance_data.set_index('time', inplace=True)
-
-            # Merge the aggregate and appliance data on timestamp and resample to 5 seconds
+            # Merge the aggregate and appliance data on timestamp and resample to 6 seconds
             merged_data = aggregate_data.join(appliance_data, how='outer')
             merged_data.index = pd.to_datetime(merged_data.index)
             merged_data = merged_data.resample('6S').mean().fillna(method='backfill', limit=1)
             merged_data.dropna(inplace=True)
             merged_data.reset_index(inplace=True)
-            merged_data = merged_data.head(self.num_rows)
-            house_data_map[house] = merged_data
+            if len(merged_data) <= self.num_rows:
+                filtered_data = merged_data
+            else:
+                filtered_data = self.selectBestChunk(merged_data)
+            house_data_map[house] = filtered_data
         return house_data_map
 
+    def selectBestChunk(self, df, gap_threshold=300):
+
+        df = df.copy()  
+        
+        df['time'] = pd.to_datetime(df['time'])
+
+        time_diffs = df['time'].diff().fillna(pd.Timedelta(seconds=0)).dt.total_seconds()
+        
+        # Find the index of the largest gap in the data
+        rolling_max_gaps = time_diffs.rolling(window=self.num_rows, min_periods=1).max().shift(-self.num_rows + 1)
+
+        average_nonzero_ratio = (df[self.appliance_name_formatted] != 0).mean()
+
+        rolling_nonzero_ratios = (df[self.appliance_name_formatted] != 0).rolling(window=self.num_rows, min_periods=1).mean().shift(-self.num_rows + 1)
+
+        if self.debug:
+            print(f"Average non-zero ratio: {average_nonzero_ratio}")
+        
+        valid_chunks = (rolling_max_gaps < gap_threshold) & (rolling_nonzero_ratios >= average_nonzero_ratio)
+
+        if valid_chunks.any():
+            best_chunk_index = valid_chunks.idxmax()
+            best_chunk = df.loc[best_chunk_index:best_chunk_index + self.num_rows]
+        else:
+            best_start_index = rolling_max_gaps.idxmin()
+            best_chunk = df.loc[best_start_index:best_start_index + self.num_rows]
+ 
+        return best_chunk
+    
     def saveData(self, dataframe, house_number, is_validation=False):
         """
         Save data to appropriate directories for train, validation, or test sets.
@@ -104,35 +136,15 @@ class DatasetManager:
 
     def createData(self):
         # use a chunk of a the first house as validation data
-        house_to_split = self.houses[0]
-        train_data = self.house_data_map[house_to_split]
-
-        params = dict()
-        params['aggregate_mean'] = train_data['aggregate'].mean()
-        params['aggregate_std'] = train_data['aggregate'].std()
-        params[f'{self.appliance_name_formatted}_mean'] = train_data[self.appliance_name_formatted].mean()
-        params[f'{self.appliance_name_formatted}_std'] = train_data[self.appliance_name_formatted].std()
-        self.normalisation_parameters[house_to_split] = params
-
-        total_rows = sum([len(data) for data in self.house_data_map.values()])
-        validation_rows = int((self.validation_percentage / 100) * total_rows)
-        validation_data = train_data.tail(validation_rows)
-        validation_data.reset_index(drop=True, inplace=True)
-        train_data.drop(train_data.index[-validation_rows:], inplace=True)
-        
-        # train_data = self.normaliseData(train_data, params)
-        # validation_data = self.normaliseData(validation_data, params)
-        self.saveData(train_data, house_to_split)
-        self.saveData(validation_data, house_to_split, is_validation=True)
-        for house in self.houses[1:]:
+        for house in self.houses:
             params = dict()
             data = self.house_data_map[house]
-            params['aggregate_mean'] = data['aggregate'].mean()
-            params['aggregate_std'] = data['aggregate'].std()
-            params[f'{self.appliance_name_formatted}_mean'] = data[self.appliance_name_formatted].mean()
-            params[f'{self.appliance_name_formatted}_std'] = data[self.appliance_name_formatted].std()
+            params['aggregate_mean'] = float(data['aggregate'].mean())
+            params['aggregate_std'] = float(data['aggregate'].std())
+            params[f'{self.appliance_name_formatted}_mean'] = float(data[self.appliance_name_formatted].mean())
+            params[f'{self.appliance_name_formatted}_std'] = float(data[self.appliance_name_formatted].std())
             self.normalisation_parameters[house] = params
-            # data = self.normaliseData(data, params)
+            data = self.normaliseData(data, params)
             self.saveData(data, house)
         # Save the normalisation parameters as a JSON file
         normalisation_params_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_normalisation_parameters.json')
@@ -147,14 +159,14 @@ class DatasetManager:
 
 ukdale_appliances = ["microwave", "dishwasher", "fridge", "kettle", "washing machine"]
 redd_appliances = ["microwave", "dishwasher", "fridge", "washer_dryer"]
-for appliance in redd_appliances:
-    ukdale_appliance_manager = DatasetManager(
-        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REDD_appliances_not_normalised"),
-        dataset='REDD',
+for appliance in ukdale_appliances:
+    appliance_manager = DatasetManager(
+        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ECO_data_separated"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ECO_appliances"),
+        dataset='ECO',
         appliance_name=appliance,
         debug=True,
         num_rows=1000000
     )
-    ukdale_appliance_manager.createData()
+    appliance_manager.createData()
 
