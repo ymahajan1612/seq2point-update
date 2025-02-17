@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 
 
 class Trainer:
-    def __init__(self, model_name, train_csv_dirs, validation_csv_dir, appliance, dataset, model_save_dir, window_length=599):
+    def __init__(self, model_name, train_csv_dirs, validation_csv_dirs, appliance, dataset, model_save_dir, window_length=599):
         """
         Trainer class for training Seq2Point models.
         model_name (str): Name of the model to train.
         train_csv_dirs (list): List of file paths to the training CSVs.
-        validation_csv_dirs (str): file path to the validation CSV.
+        validation_csv_dirs (list): list of file paths to the validation CSVs
         appliance (str): Name of the appliance to train the model for.
         dataset (str): Name of the dataset.
         model_save_dir (str): Directory to save the trained model.
@@ -45,7 +45,7 @@ class Trainer:
         # create the dataloaders from the CSVs
         self.batch_size = 1000
         train_dataset = SlidingWindowDataset(train_csv_dirs, self.model.getWindowSize())
-        validation_dataset = SlidingWindowDataset([validation_csv_dir], self.model.getWindowSize())
+        validation_dataset = SlidingWindowDataset(validation_csv_dirs, self.model.getWindowSize())
         self.train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
         self.validation_loader = DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=False)
 

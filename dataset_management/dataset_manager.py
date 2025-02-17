@@ -3,7 +3,7 @@ import os
 import json
 
 class DatasetManager:
-    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = None, num_rows = 1 * (10**6), validation_percentage=13):
+    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = None, max_num_rows = 1 * (10**6), validation_percentage=13):
         self.debug = debug
         self.data_directory = data_directory
         self.save_path = save_path
@@ -17,7 +17,7 @@ class DatasetManager:
         if not self.houses:
             raise ValueError(f"{self.appliance_name} not found in dataset {self.dataset}")
 
-        self.num_rows = num_rows
+        self.max_num_rows = max_num_rows
 
         self.house_data_map = self.loadData()
         self.normalisation_parameters = dict()
@@ -73,10 +73,8 @@ class DatasetManager:
             merged_data = merged_data.resample('6S').mean().fillna(method='backfill', limit=1)
             merged_data.dropna(inplace=True)
             merged_data.reset_index(inplace=True)
-            if len(merged_data) <= self.num_rows:
-                filtered_data = merged_data
-            else:
-                filtered_data = self.selectBestChunk(merged_data)
+            print(len(merged_data))
+            filtered_data = self.selectBestChunk(merged_data)
             house_data_map[house] = filtered_data
         return house_data_map
 
@@ -87,13 +85,13 @@ class DatasetManager:
         df['time'] = pd.to_datetime(df['time'])
 
         time_diffs = df['time'].diff().fillna(pd.Timedelta(seconds=0)).dt.total_seconds()
-        
+        window_size = min(self.max_num_rows, int(len(df)*0.3))
         # Find the index of the largest gap in the data
-        rolling_max_gaps = time_diffs.rolling(window=self.num_rows, min_periods=1).max().shift(-self.num_rows + 1)
+        rolling_max_gaps = time_diffs.rolling(window=window_size, min_periods=1).max().shift(-window_size + 1)
 
         average_nonzero_ratio = (df[self.appliance_name_formatted] != 0).mean()
 
-        rolling_nonzero_ratios = (df[self.appliance_name_formatted] != 0).rolling(window=self.num_rows, min_periods=1).mean().shift(-self.num_rows + 1)
+        rolling_nonzero_ratios = (df[self.appliance_name_formatted] != 0).rolling(window=window_size, min_periods=1).mean().shift(-window_size + 1)
 
         if self.debug:
             print(f"Average non-zero ratio: {average_nonzero_ratio}")
@@ -101,11 +99,13 @@ class DatasetManager:
         valid_chunks = (rolling_max_gaps < gap_threshold) & (rolling_nonzero_ratios >= average_nonzero_ratio)
 
         if valid_chunks.any():
+            print("Valid chunks found")
             best_chunk_index = valid_chunks.idxmax()
-            best_chunk = df.loc[best_chunk_index:best_chunk_index + self.num_rows]
+            best_chunk = df.loc[best_chunk_index:best_chunk_index + window_size]
         else:
+            print("No valid chunks found")
             best_start_index = rolling_max_gaps.idxmin()
-            best_chunk = df.loc[best_start_index:best_start_index + self.num_rows]
+            best_chunk = df.loc[best_start_index:best_start_index + window_size]
  
         return best_chunk
     
@@ -157,16 +157,17 @@ class DatasetManager:
 
 
 
-ukdale_appliances = ["microwave", "dishwasher", "fridge", "kettle", "washing machine"]
-redd_appliances = ["microwave", "dishwasher", "fridge", "washer_dryer"]
-for appliance in ukdale_appliances:
+ukdale_appliances = ["microwave", "dishwasher", "kettle", "washing machine"]
+redd_appliances = ["microwave", "dishwasher", "washer_dryer"]
+refit_appliances = ["washing machine"]
+for appliance in refit_appliances:
     appliance_manager = DatasetManager(
-        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ECO_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ECO_appliances"),
-        dataset='ECO',
+        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "Downloads", "REFIT_appliances"),
+        dataset='REFIT',
         appliance_name=appliance,
         debug=True,
-        num_rows=1000000
+        max_num_rows=1000000,
     )
     appliance_manager.createData()
 

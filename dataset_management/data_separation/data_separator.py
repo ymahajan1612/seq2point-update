@@ -197,16 +197,15 @@ class DataSeparator:
 
         # Save data to HDF5 file
         output_file = os.path.join(house_dir, f"{appliance_column}_H{house_number}.h5")
-
-        data.to_hdf(output_file, key='dataset', mode='w')
+        data.to_hdf(output_file, key='dataset', mode='w', format='table')
         print(f"Saved: {output_file}")
 
 
 
 data_separator = DataSeparator(
-    file_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "ECO"),
+    file_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "CLEAN_REFIT_081116"),
     save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents"),
     appliance_name=None,
-    dataset_type="eco",
+    dataset_type="refit",
 )
 data_separator.process_data()

@@ -1,89 +1,89 @@
-{
-  "house_1": {
-    "0": "aggregate",
-    "1": "fridge",
-    "2": "freezer",
-    "3": "freezer",
-    "4": "washer_dryer",
-    "5": "washing_machine",
-    "6": "dishwasher",
-    "7": "computer",
-    "8": "television",
-    "9": "electric_heater"
-  },
-  "house_2": {
-    "0": "aggregate",
-    "1": "fridge-freezer",
-    "2": "washing_machine",
-    "3": "dishwasher",
-    "4": "television",
-    "5": "microwave",
-    "6": "toaster",
-    "7": "hi_fi",
-    "8": "kettle",
-    "9": "fan"
-  },
-  "house_3": {
-    "0": "aggregate",
-    "1": "toaster",
-    "2": "fridge-freezer",
-    "3": "freezer",
-    "4": "dryer",
-    "5": "dishwasher",
-    "6": "washing_machine",
-    "7": "television",
-    "8": "microwave",
-    "9": "kettle"
-  },
-  "house_4": {
-    "0": "aggregate",
-    "1": "fridge",
-    "2": "freezer",
-    "3": "fridge-freezer",
-    "4": "washing_machine",
-    "5": "washing_machine",
-    "6": "computer",
-    "7": "television",
-    "8": "microwave",
-    "9": "kettle"
-  },
-  "house_5": {
-    "0": "aggregate",
-    "1": "fridge-freezer",
-    "2": "dryer",
-    "3": "washing_machine",
-    "4": "dishwasher",
-    "5": "computer",
-    "6": "television",
-    "7": "microwave",
-    "8": "kettle",
-    "9": "toaster"
-  },
-  "house_6": {
-    "0": "aggregate",
-    "1": "freezer",
-    "2": "washing_machine",
-    "3": "dishwasher",
-    "4": "computer",
-    "5": "television",
-    "6": "microwave",
-    "7": "kettle",
-    "8": "toaster",
-    "9": "computer"
-  },
-  "house_7": {
-    "0": "aggregate",
-    "1": "fridge",
-    "2": "freezer",
-    "3": "freezer",
-    "4": "dryer",
-    "5": "washing_machine",
-    "6": "dishwasher",
-    "7": "television",
-    "8": "toaster",
-    "9": "kettle"
-  },
-  "house_8": {
+{  "House 1": {
+  "0": "aggregate",
+  "1": "fridge",
+  "2": "freezer",
+  "3": "freezer",
+  "4": "washer_dryer",
+  "5": "washing_machine",
+  "6": "dishwasher",
+  "7": "computer",
+  "8": "television",
+  "9": "electric_heater"
+},
+"House 2": {
+  "0": "aggregate",
+  "1": "fridge-freezer",
+  "2": "washing_machine",
+  "3": "dishwasher",
+  "4": "television",
+  "5": "microwave",
+  "6": "toaster",
+  "7": "hi_fi",
+  "8": "kettle",
+  "9": "fan"
+},
+"House 3": {
+  "0": "aggregate",
+  "1": "toaster",
+  "2": "fridge-freezer",
+  "3": "freezer",
+  "4": "dryer",
+  "5": "dishwasher",
+  "6": "washing_machine",
+  "7": "television",
+  "8": "microwave",
+  "9": "kettle"
+},
+"House 4": {
+  "0": "aggregate",
+  "1": "fridge",
+  "2": "freezer",
+  "3": "fridge-freezer",
+  "4": "washing_machine",
+  "5": "washing_machine",
+  "6": "computer",
+  "7": "television",
+  "8": "microwave",
+  "9": "kettle"
+},
+"House 5": {
+  "0": "aggregate",
+  "1": "fridge-freezer",
+  "2": "dryer",
+  "3": "washing_machine",
+  "4": "dishwasher",
+  "5": "computer",
+  "6": "television",
+  "7": "microwave",
+  "8": "kettle",
+  "9": "toaster"
+},
+"House 6": {
+  "0": "aggregate",
+  "1": "freezer",
+  "2": "washing_machine",
+  "3": "dishwasher",
+  "4": "computer",
+  "5": "television",
+  "6": "microwave",
+  "7": "kettle",
+  "8": "toaster",
+  "9": "computer"
+},
+"House 7": {
+  "0": "aggregate",
+  "1": "fridge",
+  "2": "freezer",
+  "3": "freezer",
+  "4": "dryer",
+  "5": "washing_machine",
+  "6": "dishwasher",
+  "7": "television",
+  "8": "toaster",
+  "9": "kettle"
+},
+
+  "House 8": {
     "0": "aggregate",
     "1": "fridge",
     "2": "freezer",
@@ -95,7 +95,7 @@
     "8": "microwave",
     "9": "kettle"
   },
-  "house_9": {
+  "House 9": {
     "0": "aggregate",
     "1": "fridge-freezer",
     "2": "washer_dryer",
@@ -107,7 +107,7 @@
     "8": "hi_fi",
     "9": "heater"
   },
-  "house_10": {
+  "House 10": {
     "0": "aggregate",
     "1": "blender",
     "2": "toaster",
@@ -119,7 +119,7 @@
     "8": "microwave",
     "9": "mixer"
   },
-  "house_11": {
+  "House 11": {
     "0": "aggregate",
     "1": "fridge",
     "2": "fridge-freezer",
@@ -131,7 +131,7 @@
     "8": "router",
     "9": "hi_fi"
   },
-  "house_12": {
+  "House 12": {
     "0": "aggregate",
     "1": "fridge-freezer",
     "4": "computer",
@@ -140,7 +140,7 @@
     "7": "toaster",
     "8": "television"
   },
-  "house_13": {
+  "House 13": {
     "0": "aggregate",
     "1": "television",
     "2": "freezer",
@@ -151,7 +151,7 @@
     "8": "microwave",
     "9": "kettle"
   },
-  "house_15": {
+  "House 15": {
     "0": "aggregate",
     "1": "fridge-freezer",
     "2": "dryer",
@@ -163,7 +163,7 @@
     "8": "hi_fi",
     "9": "toaster"
   },
-  "house_16": {
+  "House 16": {
     "0": "aggregate",
     "1": "fridge-freezer",
     "2": "fridge-freezer",
@@ -175,7 +175,7 @@
     "8": "television",
     "9": "dehumidifier"
   },
-  "house_17": {
+  "House 17": {
     "0": "aggregate",
     "1": "freezer",
     "2": "fridge-freezer",
@@ -187,7 +187,7 @@
     "8": "kettle",
     "9": "television"
   },
-  "house_18": {
+  "House 18": {
     "0": "aggregate",
     "1": "fridge",
     "2": "freezer",
@@ -199,7 +199,7 @@
     "8": "television",
     "9": "microwave"
   },
-  "house_19": {
+  "House 19": {
     "0": "aggregate",
     "1": "fridge-freezer",
     "2": "washing_machine",
@@ -211,7 +211,7 @@
     "8": "games_console",
     "9": "hi_fi"
   },
-  "house_20": {
+  "House 20": {
     "0": "aggregate",
     "1": "fridge",
     "2": "freezer",
@@ -223,7 +223,7 @@
     "8": "microwave",
     "9": "kettle"
   },
-  "house_21": {
+  "House 21": {
     "0": "aggregate",
     "1": "fridge-freezer",
     "2": "dryer",
