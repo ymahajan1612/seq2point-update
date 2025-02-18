@@ -41,10 +41,33 @@ It extracts aggregate power readings and individual appliance consumption, ensur
 
 Saves the data for a specified appliance in a dataset as a csv with filename: [appliance]_H[house number].csv
 
-Example CSV file from UKDALE dataset (dishwasher_H1.csv)
-time,aggregate,dishwasher
-2013-05-17 09:35:12,0.13711391113313803,-0.07084559614012528
-2013-05-17 09:35:18,0.134153645793339,-0.07084559614012528
-2013-05-17 09:35:24,0.1430344418127361,-0.07084559614012528
-2013-05-17 09:35:30,0.1430344418127361,-0.07084559614012528
+Also creates a normalisation parameters .json file containing the aggregate and appliance mean and standard deviation 
+
+Example CSV file from UKDALE dataset (dishwasher_H1.csv):
+  time, aggregate, dishwasher
+  2013-05-17 09:35:12, 0.13711391113313803, -0.07084559614012528
+  2013-05-17 09:35:18, 0.134153645793339, -0.07084559614012528
+  2013-05-17 09:35:24, 0.1430344418127361, -0.07084559614012528
+  2013-05-17 09:35:30, 0.1430344418127361, -0.07084559614012528
+
+### train_model.py 
+
+The module for training a seq2point model. Class parameters are as follows:
+model_name, train_csv_dirs, validation_csv_dirs, appliance, dataset, model_save_dir, window_length 
+  model_name (str): Name of the model to train.
+  train_csv_dirs (list): List of file paths to the training CSVs.
+  validation_csv_dirs (list): list of file paths to the validation CSVs
+  appliance (str): Name of the appliance to train the model for.
+  dataset (str): Name of the dataset.
+  model_save_dir (str): Directory to save the trained model.
+  window_length (int): Length of the input window.
+
+### test_model.py 
+
+The module for training seq2point models. Class parameters are as follows:
+        model_name (str): Name of the model to test.
+        model_state_dir (str): Directory to load the model state from.
+        test_csv_dir (str): Directory to load the test CSV from.
+        appliance (str): Name of the appliance to test the model for.
+        normalisation_parameters_dir (str): Directory to load the normalisation parameters from.
 
