@@ -22,19 +22,19 @@ The data separator module is designed to disaggregate appliance-specific power c
   - **Plug-level appliance data** (one zip file per plug)
   - Unzip the smart meter and plug level appliance data to a single folder (CSV version)
   - Example folder structure:
-  - ECO/
-      │── 01_sm_csv/         # Smart meter (aggregate) readings for House 1
-      │── 01_plugs_csv/      # Plug-level appliance readings for House 1
-      │── 02_sm_csv/         # Smart meter readings for House 2
-      │── 02_plugs_csv/      # Plug-level readings for House 2
-      │── 03_sm_csv/
-      │── 03_plugs_csv/
-      │── 04_sm_csv/
-      │── 04_plugs_csv/
-      │── 05_sm_csv/
-      │── 05_plugs_csv/
-      │── 06_sm_csv/
-      │── 06_plugs_csv/
+ECO/
+├── 01_sm_csv/      # Smart meter readings for House 1
+├── 01_plugs_csv/   # Plug-level readings for House 1
+├── 02_sm_csv/      # Smart meter readings for House 2
+├── 02_plugs_csv/   # Plug-level readings for House 2
+├── 03_sm_csv/
+├── 03_plugs_csv/
+├── 04_sm_csv/
+├── 04_plugs_csv/
+├── 05_sm_csv/
+├── 05_plugs_csv/
+├── 06_sm_csv/
+├── 06_plugs_csv/
 
 
 
