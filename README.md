@@ -21,20 +21,30 @@ The data separator module is designed to disaggregate appliance-specific power c
   - **Smart meter (aggregate) data**
   - **Plug-level appliance data** (one zip file per plug)
   - Unzip the smart meter and plug level appliance data to a single folder (CSV version)
-  - Example folder structure:
-ECO/
-├── 01_sm_csv/      # Smart meter readings for House 1
-├── 01_plugs_csv/   # Plug-level readings for House 1
-├── 02_sm_csv/      # Smart meter readings for House 2
-├── 02_plugs_csv/   # Plug-level readings for House 2
-├── 03_sm_csv/
-├── 03_plugs_csv/
-├── 04_sm_csv/
-├── 04_plugs_csv/
-├── 05_sm_csv/
-├── 05_plugs_csv/
-├── 06_sm_csv/
-├── 06_plugs_csv/
 
+The following code processes the data to the required format: 
 
+data_separator = DataSeparator(
+    file_path=*file location of the raw data*,
+    save_path=*save path for the files*,
+    appliance_name=...,
+    dataset_type=...,
+)
+data_separator.process_data()
+
+Running this saves the data in HDF5 format
+
+### dataset_manager.py
+ responsible for loading, processing, and preparing appliance-specific data from NILM datasets for training Seq2Point models. It handles data selection, resampling, normalization, and saving in a structured format.
+ 
+It extracts aggregate power readings and individual appliance consumption, ensuring consistent sampling intervals and selects a chunk of data with minimal gaps and sufficient appliance activity. 
+
+Saves the data for a specified appliance in a dataset as a csv with filename: [appliance]_H[house number].csv
+
+Example CSV file from UKDALE dataset (dishwasher_H1.csv)
+time,aggregate,dishwasher
+2013-05-17 09:35:12,0.13711391113313803,-0.07084559614012528
+2013-05-17 09:35:18,0.134153645793339,-0.07084559614012528
+2013-05-17 09:35:24,0.1430344418127361,-0.07084559614012528
+2013-05-17 09:35:30,0.1430344418127361,-0.07084559614012528
 
