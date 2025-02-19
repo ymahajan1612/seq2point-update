@@ -12,23 +12,24 @@ import json
 import time 
 
 class Tester:
-    def __init__(self, model_name, model_state_dir, test_csv_dir, appliance, normalisation_parameters_dir, window_length=599):
+    def __init__(self, model_state_dir, test_csv_dir, appliance, normalisation_parameters_dir):
         """
         Tester class for testing the model
         model_name (str): Name of the model to test.
         model_state_dir (str): Directory to load the model state from.
         test_csv_dir (str): Directory to load the test CSV from.
         appliance (str): Name of the appliance to test the model for.
-        dataset (str): Name of the dataset.
-        window_length (int): Length of the input window.
+        normalisation_parameters_dir (str): Directory to load the normalisation parameters from.
         """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.criterion = nn.MSELoss()
         
 
         # set up the model and its parameters
-        self.model = Seq2PointFactory.createModel(model_name, window_length)
         checkpoint = torch.load(model_state_dir, map_location=self.device)
+        self.model_name = checkpoint['model_name']
+        window_length = checkpoint['window_length']
+        self.model = Seq2PointFactory.createModel(self.model_name, window_length)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.to(self.device)
 
@@ -81,12 +82,14 @@ class Tester:
                         self.ground_truth.extend(denormalised_targets.cpu().numpy().flatten())
                         self.aggregate.extend(denormalised_inputs[:, self.offset].cpu().numpy().flatten()) # use the center of the window for the aggregate
 
+
         # match timestamp length to number of predictions
         trim_length = len(self.predictions)
         self.timestamps = self.timestamps[:trim_length]
 
-        # remove values where prediction < 0
+        # set predictions so they are greater than 0 and less than the aggregate
         self.predictions = [max(0, pred) for pred in self.predictions]
+        self.predictions = [min(pred, agg) for pred, agg in zip(self.predictions, self.aggregate)]
         self.ground_truth = [max(0, gt) for gt in self.ground_truth]
         self.aggregate = [max(0, agg) for agg in self.aggregate]
 

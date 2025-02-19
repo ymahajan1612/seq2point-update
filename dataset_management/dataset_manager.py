@@ -135,7 +135,6 @@ class DatasetManager:
         return df
 
     def createData(self):
-        # use a chunk of a the first house as validation data
         for house in self.houses:
             params = dict()
             data = self.house_data_map[house]
@@ -160,11 +159,11 @@ class DatasetManager:
 ukdale_appliances = ["microwave", "dishwasher", "kettle", "washing machine"]
 redd_appliances = ["microwave", "dishwasher", "washer_dryer"]
 refit_appliances = ["washing machine"]
-for appliance in refit_appliances:
+for appliance in ukdale_appliances:
     appliance_manager = DatasetManager(
-        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "Downloads", "REFIT_appliances"),
-        dataset='REFIT',
+        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "Documents", "UKDALE_appliances"),
+        dataset='UKDALE',
         appliance_name=appliance,
         debug=True,
         max_num_rows=1000000,
