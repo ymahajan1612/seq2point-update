@@ -22,17 +22,11 @@ class Trainer:
         dataset (str): Name of the dataset.
         model_save_dir (str): Directory to save the trained model.
         window_length (int): Length of the input window.
-        device (str): Device to train the model on (default: "cuda").
         """
         self.model_name = model_name
         self.model = Seq2PointFactory.createModel(self.model_name, window_length)
 
         # set up the loss function and optimiser
-        self.criterion = nn.MSELoss()
-        beta_1 = 0.9
-        beta_2 = 0.999
-        learning_rate = 0.001
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
 
         self.appliance = appliance
         self.appliance_name_formatted = self.appliance.replace(" ", "_")
@@ -42,6 +36,11 @@ class Trainer:
 
         self.model_save_dir = model_save_dir
 
+        self.criterion = nn.MSELoss()
+        beta_1 = 0.9
+        beta_2 = 0.999
+        learning_rate = 0.001
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
         # create the dataloaders from the CSVs
         self.batch_size = 1000
         train_dataset = SlidingWindowDataset(train_csv_dirs, self.model.getWindowSize())
@@ -97,7 +96,9 @@ class Trainer:
                 if not os.path.exists(self.model_save_dir):
                     os.makedirs(self.model_save_dir)
                 torch.save({
-                        'model_state_dict': self.model.state_dict()
+                        'model_state_dict': self.model.state_dict(),
+                        'model_name' : self.model_name,
+                        'window_length' : self.model.getWindowSize()
                 }, os.path.join(self.model_save_dir,f"{self.appliance}_{self.dataset}_{self.model_name}.pth"))
                 self.counter = 0
             else:
