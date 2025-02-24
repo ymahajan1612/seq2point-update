@@ -12,27 +12,21 @@ import matplotlib.pyplot as plt
 
 
 class Trainer:
-    def __init__(self, model_name, train_csv_dirs, validation_csv_dir, appliance, dataset, model_save_dir, window_length=599):
+    def __init__(self, model_name, train_csv_dirs, validation_csv_dirs, appliance, dataset, model_save_dir, window_length=599):
         """
         Trainer class for training Seq2Point models.
         model_name (str): Name of the model to train.
         train_csv_dirs (list): List of file paths to the training CSVs.
-        validation_csv_dirs (str): file path to the validation CSV.
+        validation_csv_dirs (list): list of file paths to the validation CSVs
         appliance (str): Name of the appliance to train the model for.
         dataset (str): Name of the dataset.
         model_save_dir (str): Directory to save the trained model.
         window_length (int): Length of the input window.
-        device (str): Device to train the model on (default: "cuda").
         """
         self.model_name = model_name
         self.model = Seq2PointFactory.createModel(self.model_name, window_length)
 
         # set up the loss function and optimiser
-        self.criterion = nn.MSELoss()
-        beta_1 = 0.9
-        beta_2 = 0.999
-        learning_rate = 0.001
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
 
         self.appliance = appliance
         self.appliance_name_formatted = self.appliance.replace(" ", "_")
@@ -42,10 +36,15 @@ class Trainer:
 
         self.model_save_dir = model_save_dir
 
+        self.criterion = nn.MSELoss()
+        beta_1 = 0.9
+        beta_2 = 0.999
+        learning_rate = 0.001
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
         # create the dataloaders from the CSVs
         self.batch_size = 1000
         train_dataset = SlidingWindowDataset(train_csv_dirs, self.model.getWindowSize())
-        validation_dataset = SlidingWindowDataset([validation_csv_dir], self.model.getWindowSize())
+        validation_dataset = SlidingWindowDataset(validation_csv_dirs, self.model.getWindowSize())
         self.train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
         self.validation_loader = DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=False)
 
@@ -59,27 +58,19 @@ class Trainer:
         self.train_losses = []
         self.val_losses = []
 
-        # fetch parameters for normalisation
-        train_dfs = [pd.read_csv(train_csv_dir, low_memory=False) for train_csv_dir in train_csv_dirs]
-        combined_train_df = pd.concat(train_dfs, axis=0)
-        self.aggregate_mean = combined_train_df["aggregate"].mean()
-        self.aggregate_std = combined_train_df["aggregate"].std()
-        self.appliance_mean = combined_train_df[self.appliance_name_formatted].mean()
-        self.appliance_std = combined_train_df[self.appliance_name_formatted].std() 
-        
+
 
     def trainModel(self, num_epochs=10):
         for epoch in range(num_epochs):
             self.model.train()
             train_loss = 0
             for inputs, targets in self.train_loader:
-                inputs_normalised = (inputs - self.aggregate_mean) / self.aggregate_std
-                targets_normalised = (targets - self.appliance_mean) / self.appliance_std
-                inputs_normalised, targets_normalised = inputs_normalised.to(self.device), targets_normalised.to(self.device)
+
+                inputs, targets = inputs.to(self.device), targets.to(self.device)
 
                 self.optimizer.zero_grad()
-                outputs = self.model(inputs_normalised)
-                loss = self.criterion(outputs.squeeze(-1), targets_normalised)
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs.squeeze(-1), targets)
                 loss.backward()
                 self.optimizer.step()
 
@@ -89,12 +80,10 @@ class Trainer:
             val_loss = 0
             with torch.no_grad():
                 for inputs, targets in self.validation_loader:
-                    inputs_normalised = (inputs - self.aggregate_mean) / self.aggregate_std
-                    targets_normalised = (targets - self.appliance_mean) / self.appliance_std
-                    inputs_normalised, targets_normalised = inputs_normalised.to(self.device), targets_normalised.to(self.device)
+                    inputs, targets = inputs.to(self.device), targets.to(self.device)
 
-                    outputs = self.model(inputs_normalised)
-                    loss = self.criterion(outputs.squeeze(-1), targets_normalised)
+                    outputs = self.model(inputs)
+                    loss = self.criterion(outputs.squeeze(-1), targets)
                     val_loss += loss.item()
 
             train_loss /= len(self.train_loader)
@@ -108,10 +97,8 @@ class Trainer:
                     os.makedirs(self.model_save_dir)
                 torch.save({
                         'model_state_dict': self.model.state_dict(),
-                        'aggregate_mean': self.aggregate_mean,
-                        'aggregate_std': self.aggregate_std,
-                        'appliance_mean': self.appliance_mean,
-                        'appliance_std': self.appliance_std
+                        'model_name' : self.model_name,
+                        'window_length' : self.model.getWindowSize()
                 }, os.path.join(self.model_save_dir,f"{self.appliance}_{self.dataset}_{self.model_name}.pth"))
                 self.counter = 0
             else:

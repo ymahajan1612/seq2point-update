@@ -6,37 +6,45 @@ import numpy as np
 from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import os
+import re
+import json
 import time 
 
 class Tester:
-    def __init__(self, model_name, model_state_dir, test_csv_dir, appliance, dataset, window_length=599):
+    def __init__(self, model_state_dir, test_csv_dir, appliance, normalisation_parameters_dir):
         """
         Tester class for testing the model
         model_name (str): Name of the model to test.
         model_state_dir (str): Directory to load the model state from.
         test_csv_dir (str): Directory to load the test CSV from.
         appliance (str): Name of the appliance to test the model for.
-        dataset (str): Name of the dataset.
-        window_length (int): Length of the input window.
+        normalisation_parameters_dir (str): Directory to load the normalisation parameters from.
         """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.criterion = nn.MSELoss()
+        
 
         # set up the model and its parameters
-        self.model = Seq2PointFactory.createModel(model_name, window_length)
         checkpoint = torch.load(model_state_dir, map_location=self.device)
+        self.model_name = checkpoint['model_name']
+        window_length = checkpoint['window_length']
+        self.model = Seq2PointFactory.createModel(self.model_name, window_length)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.to(self.device)
 
-        # parameters for normalisation
-        self.aggregate_mean = checkpoint['aggregate_mean']
-        self.aggregate_std = checkpoint['aggregate_std']
-        self.appliance_mean = checkpoint['appliance_mean']
-        self.appliance_std = checkpoint['appliance_std']
+        # extract the normalisation parameters from the house
+        self.appliance_name_formatted = appliance.replace(" ", "_")
+        # get the house number from the test csv directory
+        file_name = os.path.basename(test_csv_dir)
+        house_num = re.search(r'H(\d+)', file_name).group(1)
 
-        self.appliance = appliance
-        self.appliance_name_formatted = self.appliance.replace(" ", "_")
-        self.dataset = dataset
+        with open(normalisation_parameters_dir, 'r') as f:
+            self.normalisation_params = json.load(f)
+        self.aggregate_mean = self.normalisation_params[house_num]["aggregate_mean"]
+        self.aggregate_std = self.normalisation_params[house_num]["aggregate_std"]
+        self.appliance_mean = self.normalisation_params[house_num][f'{self.appliance_name_formatted}_mean']
+        self.appliance_std = self.normalisation_params[house_num][f'{self.appliance_name_formatted}_std']
 
         # set up the dataloader
         self.batch_size = 32
@@ -61,27 +69,27 @@ class Tester:
         time_start = time.time()
         with torch.no_grad():
                 for inputs, targets in self.test_loader:
-                        inputs_normalised = (inputs - self.aggregate_mean) / self.aggregate_std
-                        targets_normalised = (targets - self.appliance_mean) / self.appliance_std
-                        inputs_normalised, targets_normalised = inputs_normalised.to(self.device), targets_normalised.to(self.device)
-                        outputs = self.model(inputs_normalised)
-                        loss = self.criterion(outputs.squeeze(-1), targets_normalised)
+                        inputs, targets = inputs.to(self.device), targets.to(self.device)
+                        outputs = self.model(inputs)
+                        loss = self.criterion(outputs.squeeze(-1), targets)
                         test_loss += loss.item()
 
                         denormalised_outputs = outputs.squeeze(-1) * self.appliance_std + self.appliance_mean
-                        denormalised_targets = targets_normalised * self.appliance_std + self.appliance_mean
-                        denormalised_inputs = inputs_normalised * self.aggregate_std + self.aggregate_mean
+                        denormalised_targets = targets * self.appliance_std + self.appliance_mean
+                        denormalised_inputs = inputs * self.aggregate_std + self.aggregate_mean
 
                         self.predictions.extend(denormalised_outputs.cpu().numpy().flatten())
                         self.ground_truth.extend(denormalised_targets.cpu().numpy().flatten())
                         self.aggregate.extend(denormalised_inputs[:, self.offset].cpu().numpy().flatten()) # use the center of the window for the aggregate
 
+
         # match timestamp length to number of predictions
         trim_length = len(self.predictions)
         self.timestamps = self.timestamps[:trim_length]
 
-        # remove values where prediction < 0
+        # set predictions so they are greater than 0 and less than the aggregate
         self.predictions = [max(0, pred) for pred in self.predictions]
+        self.predictions = [min(pred, agg) for pred, agg in zip(self.predictions, self.aggregate)]
         self.ground_truth = [max(0, gt) for gt in self.ground_truth]
         self.aggregate = [max(0, agg) for agg in self.aggregate]
 
@@ -133,7 +141,7 @@ class Tester:
         plt.plot(results_df["time"], results_df["ground truth"], label="Ground Truth", alpha=0.7)
         plt.plot(results_df["time"], results_df["prediction"], label="Prediction", alpha=0.7)
         plt.xlabel("Timestamp")
-        plt.ylabel("Power (Normalized)")
+        plt.ylabel("Power (Watts)")
         plt.legend()
         plt.title("Aggregate, Ground Truth, and Prediction Comparison")
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
