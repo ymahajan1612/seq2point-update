@@ -73,7 +73,7 @@ class Seq2pointAttention(Seq2PointBase):
         self.bilstm1 = nn.LSTM(input_size=16, hidden_size=128, num_layers=1, batch_first=True, bidirectional=True)
         self.bilstm2 = nn.LSTM(input_size=256, hidden_size=256, num_layers=1, batch_first=True, bidirectional=True)
 
-        self.fc1 = nn.Linear(input_window_length, input_window_length)  
+        self.fc1 = nn.Linear(512, input_window_length)  
 
         self.attention = Attention(input_window_length)  
 
@@ -83,46 +83,18 @@ class Seq2pointAttention(Seq2PointBase):
         self.fc3 = nn.Linear(128, 1)
 
     def forward(self, x):
-        print("Input shape:", x.shape)
-
         x = x.unsqueeze(1)
-        print("After unsqueeze (for Conv1D):", x.shape)
-
         x = self.conv1(x)
-        print("After Conv1D:", x.shape)
-
         x = x.permute(0, 2, 1)
-        print("After permute (for LSTM):", x.shape)
-
         x, _ = self.bilstm1(x)
-        print("After BiLSTM1:", x.shape)
-
-        x = self.dropout(x)
-        print("After Dropout1:", x.shape)
-
+        self.dropout(x)
         x, _ = self.bilstm2(x)
-        print("After BiLSTM2:", x.shape)
-
-        x = self.dropout(x)
-        print("After Dropout2:", x.shape)
-
-        x = x.permute(0, 2, 1)
+        self.dropout(x)
         x = self.fc1(x)
-        print("After FC1:", x.shape)
-
-        reweighted_sequence = self.attention(x)
-        
-        x = self.flatten(reweighted_sequence)
-        print("After Flatten:", x.shape)
- 
-        # Dense layers
-        x = self.fc2(x)  # (batch, 128)
-        print("After FC2:", x.shape)
-
-        x = self.dropout(x)  # (batch, 128)
-        print("After Dropout3:", x.shape)
-
-        x = self.fc3(x)  # (batch, 1)
-        print("After FC3 (output):", x.shape)
+        x = self.attention(x)
+        x = self.flatten(x)
+        x = self.fc2(x)
+        self.dropout(x)
+        x = self.fc3(x)
 
         return x

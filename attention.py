@@ -1,23 +1,26 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class Attention(nn.Module):
     """
     Additive attention mechanism for sequence data.
     """
-    def __init__(self, dim):
+    def __init__(self, hidden_dim):
         super(Attention, self).__init__()
-        self.score_layer = nn.Linear(dim, 1, bias=False)  #
-
-    def forward(self, x):
-        # Compute raw  attention scores
-        scores = self.score_layer(x)
-        scores = scores.squeeze(-1)  
-
-        # Normalize scores to get attention weights
-        attn_weights = torch.softmax(scores, dim=1)
-
-        attn_weights_3d = attn_weights.unsqueeze(-1)  
-        reweighted_sequence = x * attn_weights_3d  
-
-        return reweighted_sequence
+        self.attn_proj = nn.Linear(hidden_dim, hidden_dim)
+        self.v = nn.Linear(hidden_dim, 1)
+    
+    def forward(self, encoder_outputs):
+        """
+        Forward pass of the attention mechanism.
+        """
+        attn_scores = self.v(torch.tanh(self.attn_proj(encoder_outputs)))
+        
+        # Softmax the attention scores
+        attn_weights = F.softmax(attn_scores, dim=1)
+        
+        # Calculate the context vector
+        context = torch.sum(attn_weights * encoder_outputs, dim=1)
+        
+        return context
