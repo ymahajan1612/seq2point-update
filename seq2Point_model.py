@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import torch.nn as nn
 import torch
-from attention import Attention
 
 class Seq2PointBase(ABC, nn.Module):
     """
@@ -70,31 +69,24 @@ class Seq2pointAttention(Seq2PointBase):
 
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=4, stride=1, padding="same")
 
-        self.bilstm1 = nn.LSTM(input_size=16, hidden_size=128, num_layers=1, batch_first=True, bidirectional=True)
-        self.bilstm2 = nn.LSTM(input_size=256, hidden_size=256, num_layers=1, batch_first=True, bidirectional=True)
+        self.attention = nn.MultiheadAttention(embed_dim=16, num_heads=1, batch_first=True)
 
-        self.fc1 = nn.Linear(512, input_window_length)  
+        self.gru = nn.GRU(input_size=16, hidden_size=64, num_layers=1, batch_first=True, bidirectional=True)
 
-        self.attention = Attention(input_window_length)  
+        self.fc1 = nn.Linear(128, 64)
+        self.fc2 = nn.Linear(64, 1)
+        self.relu = nn.ReLU()
 
-        self.flatten = nn.Flatten()
-        self.fc2 = nn.Linear(input_window_length * 512, 128) 
-        self.dropout = nn.Dropout(0.2)
-        self.fc3 = nn.Linear(128, 1)
 
     def forward(self, x):
         x = x.unsqueeze(1)
-        x = self.conv1(x)
-        x = x.permute(0, 2, 1)
-        x, _ = self.bilstm1(x)
-        self.dropout(x)
-        x, _ = self.bilstm2(x)
-        self.dropout(x)
-        x = self.fc1(x)
-        x = self.attention(x)
-        x = self.flatten(x)
+        x = self.relu(self.conv1(x))
+        x = x.transpose(1, 2)
+        x, _ = self.attention(x, x, x)
+        x, _ = self.gru(x)
+        last_hidden_state = x[:, -1, :]
+        x = self.relu(self.fc1(last_hidden_state))
         x = self.fc2(x)
-        self.dropout(x)
-        x = self.fc3(x)
-
         return x
+
+
