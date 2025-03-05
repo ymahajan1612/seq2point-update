@@ -24,7 +24,7 @@ class SlidingWindowDataset(Dataset):
             self.data.append((inputs, outputs, file))  # Store each house as a tuple along with the file name
 
     def __len__(self):
-        return sum(len(inputs) - self.window_size + 1 for inputs, _ in self.data)
+        return sum(len(inputs) - self.window_size + 1 for inputs, _ , _ in self.data)
 
     def getNormalisationParams(self, file_dir):
         return self.normalisation_params[file_dir]
