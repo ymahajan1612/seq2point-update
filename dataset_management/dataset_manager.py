@@ -118,13 +118,12 @@ class DatasetManager:
 
 
 ukdale_appliances = ["microwave", "dishwasher", "kettle", "washing machine"]
-redd_appliances = ["microwave", "dishwasher", "washer_dryer"]
-refit_appliances = ["washing machine"]
-for appliance in ukdale_appliances:
+refit_appliances = ["microwave", "dishwasher", "kettle", "washing machine"]
+for appliance in refit_appliances:
     appliance_manager = DatasetManager(
-        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "Documents", "UKDALE_appliances"),
-        dataset='UKDALE',
+        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_appliances"),
+        dataset='REFIT',
         appliance_name=appliance,
         debug=True,
         max_num_rows=1000000,

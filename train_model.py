@@ -51,7 +51,7 @@ class Trainer:
         # implement early stopping
         self.patience = 3
         self.best_val_loss = float("inf")
-        self.min_delta = 1e-6
+        self.min_delta = 1e-4
         self.counter = 0
 
         # store the train and val losses for plotting
