@@ -47,7 +47,7 @@ class Tester:
         self.appliance_std = self.normalisation_params[house_num][f'{self.appliance_name_formatted}_std']
 
         # set up the dataloader
-        self.batch_size = 32
+        self.batch_size = 1000
         self.offset = int((0.5 * window_length) - 1)
         test_dataset = SlidingWindowDataset([test_csv_dir], self.model.getWindowSize())
         self.test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
