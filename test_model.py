@@ -144,6 +144,5 @@ class Tester:
         plt.tight_layout()  # Adjust layout to fit rotated labels
 
         mae, sae, dt = self.getMetrics()
-        plt.figtext(0.5, 0.01, f"Mean Absolute Error: {mae:.2f} Watts, Signal Aggregate Error: {sae:.2f}, Disaggregation Time: {dt:.2f} seconds", wrap=True, horizontalalignment='center', fontsize=12)
-
+        plt.figtext(0.15, 0.01, f"MAE: {mae:.2f} Watts, SAE: {sae:.2f}, Inference Time: {dt:.2f} seconds", ha="left", fontsize=12)
         plt.show()

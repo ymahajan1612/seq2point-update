@@ -126,7 +126,7 @@ class Trainer:
         plt.ylabel("Loss")
         plt.legend()
         
-        plt.text(0, min(self.val_losses) * 1.05, f"Training Time: {self.training_time:.2f} seconds")
+        plt.title(f"Training and Validation Losses\nTraining Time: {self.training_time:.2f} seconds")
 
         plt.show()
 
