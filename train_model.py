@@ -8,7 +8,7 @@ from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
-
+import time 
 
 
 class Trainer:
@@ -59,9 +59,12 @@ class Trainer:
         self.train_losses = []
         self.val_losses = []
 
+        self.training_time = 0
+
 
 
     def trainModel(self, num_epochs=50):
+        start_time = time.time()
         for epoch in range(num_epochs):
             self.model.train()
             train_loss = 0
@@ -112,6 +115,8 @@ class Trainer:
 
             self.train_losses.append(train_loss)
             self.val_losses.append(val_loss)
+        end_time = time.time()
+        self.training_time = end_time - start_time
 
 
     def plotLosses(self, save_location=None):
@@ -120,6 +125,11 @@ class Trainer:
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend()
+        
+        plt.text(0, min(self.val_losses) * 1.05, f"Training Time: {self.training_time:.2f} seconds")
+
         plt.show()
+
+
         if save_location:
             plt.savefig(save_location)

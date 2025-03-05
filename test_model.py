@@ -146,4 +146,8 @@ class Tester:
         plt.title("Aggregate, Ground Truth, and Prediction Comparison")
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
         plt.tight_layout()  # Adjust layout to fit rotated labels
+
+        mae, sae, dt = self.getMetrics()
+        plt.figtext(0.5, 0.01, f"Mean Absolute Error: {mae:.2f} Watts, Signal Aggregate Error: {sae:.2f}, Disaggregation Time: {dt:.2f} seconds", wrap=True, horizontalalignment='center', fontsize=12)
+
         plt.show()
