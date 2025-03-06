@@ -8,7 +8,7 @@ from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
-import time 
+
 
 
 class Trainer:
@@ -40,31 +40,27 @@ class Trainer:
         beta_1 = 0.9
         beta_2 = 0.999
         learning_rate = 0.001
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2), weight_decay=1e-5)
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
         # create the dataloaders from the CSVs
-        self.batch_size = 512
+        self.batch_size = 1000
         train_dataset = SlidingWindowDataset(train_csv_dirs, self.model.getWindowSize())
         validation_dataset = SlidingWindowDataset(validation_csv_dirs, self.model.getWindowSize())
         self.train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
         self.validation_loader = DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=False)
 
         # implement early stopping
-        self.patience = 5
+        self.patience = 3
         self.best_val_loss = float("inf")
-        self.min_delta = 1e-3
+        self.min_delta = 1e-6
         self.counter = 0
 
         # store the train and val losses for plotting
         self.train_losses = []
         self.val_losses = []
 
-        self.training_time = 0
 
 
-
-    def trainModel(self, num_epochs=50):
-        start_time = time.time()
+    def trainModel(self, num_epochs=10):
         for epoch in range(num_epochs):
             self.model.train()
             train_loss = 0
@@ -92,8 +88,6 @@ class Trainer:
 
             train_loss /= len(self.train_loader)
             val_loss /= len(self.validation_loader)
-            self.scheduler.step(val_loss)
-
             print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss}, Val Loss: {val_loss}")
 
             if val_loss < self.best_val_loss - self.min_delta:
@@ -115,8 +109,6 @@ class Trainer:
 
             self.train_losses.append(train_loss)
             self.val_losses.append(val_loss)
-        end_time = time.time()
-        self.training_time = end_time - start_time
 
 
     def plotLosses(self, save_location=None):
@@ -125,11 +117,6 @@ class Trainer:
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend()
-        
-        plt.title(f"Training and Validation Losses\nTraining Time: {self.training_time:.2f} seconds")
-
         plt.show()
-
-
         if save_location:
             plt.savefig(save_location)
