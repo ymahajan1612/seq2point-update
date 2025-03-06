@@ -12,14 +12,13 @@ import json
 import time 
 
 class Tester:
-    def __init__(self, model_state_dir, test_csv_dir, appliance, normalisation_parameters_dir):
+    def __init__(self, model_state_dir, test_csv_dir, appliance):
         """
         Tester class for testing the model
         model_name (str): Name of the model to test.
         model_state_dir (str): Directory to load the model state from.
         test_csv_dir (str): Directory to load the test CSV from.
         appliance (str): Name of the appliance to test the model for.
-        normalisation_parameters_dir (str): Directory to load the normalisation parameters from.
         """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.criterion = nn.MSELoss()
@@ -35,22 +34,19 @@ class Tester:
 
         # extract the normalisation parameters from the house
         self.appliance_name_formatted = appliance.replace(" ", "_")
-        # get the house number from the test csv directory
-        file_name = os.path.basename(test_csv_dir)
-        house_num = re.search(r'H(\d+)', file_name).group(1)
-
-        with open(normalisation_parameters_dir, 'r') as f:
-            self.normalisation_params = json.load(f)
-        self.aggregate_mean = self.normalisation_params[house_num]["aggregate_mean"]
-        self.aggregate_std = self.normalisation_params[house_num]["aggregate_std"]
-        self.appliance_mean = self.normalisation_params[house_num][f'{self.appliance_name_formatted}_mean']
-        self.appliance_std = self.normalisation_params[house_num][f'{self.appliance_name_formatted}_std']
 
         # set up the dataloader
-        self.batch_size = 32
+        self.batch_size = 1000
         self.offset = int((0.5 * window_length) - 1)
         test_dataset = SlidingWindowDataset([test_csv_dir], self.model.getWindowSize())
         self.test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
+
+        # load the normalisation parameters
+        normalisation_params = test_dataset.getNormalisationParams(test_csv_dir)
+        self.aggregate_mean = normalisation_params["aggregate_mean"]
+        self.aggregate_std = normalisation_params["aggregate_std"]
+        self.appliance_mean = normalisation_params["appliance_mean"]
+        self.appliance_std = normalisation_params["appliance_std"]
 
         # set up a dataframe for the results
         test_df = pd.read_csv(test_csv_dir, low_memory=False)
@@ -146,4 +142,7 @@ class Tester:
         plt.title("Aggregate, Ground Truth, and Prediction Comparison")
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
         plt.tight_layout()  # Adjust layout to fit rotated labels
+
+        mae, sae, dt = self.getMetrics()
+        plt.figtext(0.15, 0.01, f"MAE: {mae:.2f} Watts, SAE: {sae:.2f}, Inference Time: {dt:.2f} seconds", ha="left", fontsize=12)
         plt.show()

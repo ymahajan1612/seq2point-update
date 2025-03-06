@@ -3,14 +3,13 @@ import os
 import json
 
 class DatasetManager:
-    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = None, max_num_rows = 1 * (10**6), validation_percentage=13):
+    def __init__(self, data_directory, save_path, dataset, appliance_name, debug=False, max_num_houses = None, max_num_rows = 1 * (10**6)):
         self.debug = debug
         self.data_directory = data_directory
         self.save_path = save_path
         self.dataset = dataset.lower()
         self.appliance_name = appliance_name.lower()
         self.appliance_name_formatted = self.appliance_name.replace(" ", "_") 
-        self.validation_percentage = validation_percentage
         self.max_num_houses = max_num_houses
 
         self.houses = self.getHouses()
@@ -20,7 +19,6 @@ class DatasetManager:
         self.max_num_rows = max_num_rows
 
         self.house_data_map = self.loadData()
-        self.normalisation_parameters = dict()
     
     def getHouses(self):
         """
@@ -73,7 +71,6 @@ class DatasetManager:
             merged_data = merged_data.resample('6S').mean().fillna(method='backfill', limit=1)
             merged_data.dropna(inplace=True)
             merged_data.reset_index(inplace=True)
-            print(len(merged_data))
             filtered_data = self.selectBestChunk(merged_data)
             house_data_map[house] = filtered_data
         return house_data_map
@@ -108,62 +105,25 @@ class DatasetManager:
             best_chunk = df.loc[best_start_index:best_start_index + window_size]
  
         return best_chunk
-    
-    def saveData(self, dataframe, house_number, is_validation=False):
-        """
-        Save data to appropriate directories for train, validation, or test sets.
-        """
-        os.makedirs(self.save_path, exist_ok=True)
-        if not is_validation:
-            output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_H{house_number}.csv')
-        else:
-            output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_H{house_number}_validation.csv')
-        dataframe.to_csv(output_file, index=False)
-        if self.debug:
-            if not is_validation:
-                print(f"Saved data for House {house_number} to {output_file}")
-            else:
-                
-                print(f"Saved validation data for House {house_number} to {output_file}")
-    
-    def normaliseData(self, df, params):
-        """
-        Normalise data using mean and standard deviation.
-        """
-        df['aggregate'] = (df['aggregate'] - params['aggregate_mean']) / params['aggregate_std']
-        df[self.appliance_name_formatted] = (df[self.appliance_name_formatted] - params[f'{self.appliance_name_formatted}_mean']) / params[f'{self.appliance_name_formatted}_std']
-        return df
 
     def createData(self):
         for house in self.houses:
-            params = dict()
             data = self.house_data_map[house]
-            params['aggregate_mean'] = float(data['aggregate'].mean())
-            params['aggregate_std'] = float(data['aggregate'].std())
-            params[f'{self.appliance_name_formatted}_mean'] = float(data[self.appliance_name_formatted].mean())
-            params[f'{self.appliance_name_formatted}_std'] = float(data[self.appliance_name_formatted].std())
-            self.normalisation_parameters[house] = params
-            data = self.normaliseData(data, params)
-            self.saveData(data, house)
-        # Save the normalisation parameters as a JSON file
-        normalisation_params_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_normalisation_parameters.json')
-        with open(normalisation_params_file, 'w') as f:
-            json.dump(self.normalisation_parameters, f, indent=4)
-        if self.debug:
-            print(f"Saved normalisation parameters to {normalisation_params_file}")
+            os.makedirs(self.save_path, exist_ok=True)
+            output_file = os.path.join(self.save_path, f'{self.appliance_name_formatted}_H{house}.csv')
+            data.to_csv(output_file, index=False)
 
         
 
 
 
 ukdale_appliances = ["microwave", "dishwasher", "kettle", "washing machine"]
-redd_appliances = ["microwave", "dishwasher", "washer_dryer"]
-refit_appliances = ["washing machine"]
-for appliance in ukdale_appliances:
+refit_appliances = ["microwave", "dishwasher", "kettle", "washing machine"]
+for appliance in refit_appliances:
     appliance_manager = DatasetManager(
-        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "UKDALE_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "Documents", "UKDALE_appliances"),
-        dataset='UKDALE',
+        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
+        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_appliances"),
+        dataset='REFIT',
         appliance_name=appliance,
         debug=True,
         max_num_rows=1000000,

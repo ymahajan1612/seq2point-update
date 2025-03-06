@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 from pandas import HDFStore
 import os
-import nilmtk
 from datetime import datetime
 import re
 
@@ -102,21 +101,20 @@ class DataSeparator:
     def _process_redd_data(self, house_number, channel, appliance):
         appliance_column = "_".join(appliance.lower().split(" "))
         data = None
-        dataset = nilmtk.DataSet(os.path.join(self.file_path, "redd.h5"))
-        if appliance_column == 'aggregate':
-            mains_data1 = dataset.buildings[int(house_number)].elec[1].power_series_all_data()
-            mains_df1 = pd.DataFrame({'time': mains_data1.index, 'aggregate_1': mains_data1.values})
-            mains_data2 = dataset.buildings[int(house_number)].elec[2].power_series_all_data()
-            mains_df2 = pd.DataFrame({'time': mains_data2.index, 'aggregate_2': mains_data2.values})
-            mains_df1.set_index('time', inplace=True)
-            mains_df2.set_index('time', inplace=True)
-            data = mains_df1.join(mains_df2, how='outer')
-            data['aggregate'] = data.iloc[:].sum(axis=1)
-            data.reset_index(inplace=True)
-            data.drop(columns=['aggregate_1', 'aggregate_2'], inplace=True)
-        else:
-            appliance_data = dataset.buildings[int(house_number)].elec[int(channel)].power_series_all_data()
-            data = pd.DataFrame({'time': appliance_data.index, appliance_column: appliance_data.values})
+        with HDFStore(os.path.join(self.file_path, "redd.h5")) as store:
+            if appliance_column == 'aggregate':
+                key_1 = f'/building{house_number}/elec/meter1'
+                key_2 = f'/building{house_number}/elec/meter2'
+                df1 = store.get(key_1)
+                df2 = store.get(key_2)
+                data = pd.DataFrame({'time': df1.index, 'aggregate_1': df1.values.flatten()})
+                data['aggregate_2'] = df2.values.flatten()
+                data['aggregate'] = data.iloc[:,1:].sum(axis=1)
+                data.drop(columns=['aggregate_1', 'aggregate_2'], inplace=True)
+            else:
+                key = f'/building{house_number}/elec/meter{channel}'
+                df = store.get(key)
+                data = pd.DataFrame({'time': df.index, appliance_column: df.values.flatten()})
         data.dropna(inplace=True)
         data['time'] = data['time'].astype(str).apply(lambda x: x.rsplit('-',1)[0])
         self._save_data(house_number, appliance_column, data)   
