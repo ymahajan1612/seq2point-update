@@ -60,41 +60,6 @@ class Seq2PointSimple(Seq2PointBase):
         x = self.relu(self.fc1(x))
         x = self.fc2(x)
         return x
+    
 
-class Seq2PointReduced(Seq2PointBase):
-    """
-    Reduced Seq2Point model with dropout.
-    The kernal size as well as the number of layers have been reduced in each layer
-    """
-
-    def __init__(self, input_window_length=599):
-        super(Seq2PointReduced, self).__init__(input_window_length=input_window_length)
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=20, kernel_size=(8, 1), stride=(1, 1), padding='same')
-        self.conv2 = nn.Conv2d(in_channels=20, out_channels=20, kernel_size=(6, 1), stride=(1, 1), padding='same')
-        self.conv3 = nn.Conv2d(in_channels=20, out_channels=30, kernel_size=(5, 1), stride=(1, 1), padding='same')
-        self.conv4 = nn.Conv2d(in_channels=30, out_channels=40, kernel_size=(4, 1), stride=(1, 1), padding='same')
-        self.conv5 = nn.Conv2d(in_channels=40, out_channels=40, kernel_size=(4, 1), stride=(1, 1), padding='same')
-        self.flatten = nn.Flatten()
-        self.fc1 = nn.Linear(40 * self.input_window_length, 512)
-        self.fc2 = nn.Linear(512, 1)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.5)
-
-    def forward(self, x):
-        x = x.unsqueeze(1).unsqueeze(-1)
-        x = self.relu(self.conv1(x))
-        x = self.dropout(x)
-        x = self.relu(self.conv2(x))
-        x = self.dropout(x)
-        x = self.relu(self.conv3(x))
-        x = self.dropout(x)
-        x = self.relu(self.conv4(x))
-        x = self.dropout(x)
-        x = self.relu(self.conv5(x))
-        x = self.dropout(x)
-        x = self.flatten(x)
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
     
