@@ -50,7 +50,7 @@ class Trainer:
         self.validation_loader = DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=False)
 
         # implement early stopping
-        self.patience = 3
+        self.patience = 5
         self.best_val_loss = float("inf")
         self.min_delta = 1e-6
         self.counter = 0
@@ -59,7 +59,7 @@ class Trainer:
         self.train_losses = []
         self.val_losses = []
 
-    def trainModel(self, num_epochs=10):
+    def trainModel(self, num_epochs=50):
         for epoch in range(num_epochs):
             self.model.train()
             train_loss = 0
