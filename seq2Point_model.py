@@ -97,14 +97,14 @@ class Seq2PointReduced(Seq2PointBase):
         x = self.fc2(x)
         return x
         
-class Seq2pointCNNLSTM(Seq2PointBase):
+class Seq2PointCNNLSTM(Seq2PointBase):
     """
     Seq2Point model with CNN and LSTM layers.
     Single CNN layer followed by two LSTM layers.
     """
 
     def __init__(self, input_window_length=180):
-        super(Seq2pointCNNLSTM, self).__init__(input_window_length=input_window_length)
+        super(Seq2PointCNNLSTM, self).__init__(input_window_length=input_window_length)
 
         self.pad = nn.ConstantPad1d((1,2), 0)
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=4, stride=1)
@@ -112,10 +112,7 @@ class Seq2pointCNNLSTM(Seq2PointBase):
         self.lstm2 = nn.LSTM(input_size = 2*64, hidden_size = 128, batch_first = True, bidirectional = True)
         self.fc1 = nn.Linear(self.input_window_length * 128 * 2,128)
         self.fc2 = nn.Linear(128,1)
-        self.dropout = nn.Dropout(0.2)
         self.tanh = nn.Tanh()        
-
-
 
     def forward(self, x):
         x = x.unsqueeze(1)
@@ -125,7 +122,55 @@ class Seq2pointCNNLSTM(Seq2PointBase):
         x, _ = self.lstm1(x)
         x, _ = self.lstm2(x)
         x = x.contiguous().view(-1, self.input_window_length * 128 * 2)
-        self.dropout(x)
         x = self.tanh(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+class Seq2PointBalanced(Seq2PointBase):
+
+    def __init__(self, input_window_length=599):
+        super(Seq2PointBalanced, self).__init__(input_window_length=input_window_length)
+
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=25, kernel_size=(8, 1), stride=(1, 1), padding='same')
+        self.bn1 = nn.BatchNorm2d(25)
+
+        self.conv2 = nn.Conv2d(in_channels=25, out_channels=25, kernel_size=(6, 1), stride=(1, 1), padding='same')
+        self.bn2 = nn.BatchNorm2d(25)
+
+        self.conv3 = nn.Conv2d(in_channels=25, out_channels=35, kernel_size=(5, 1), stride=(1, 1), padding='same')
+        self.bn3 = nn.BatchNorm2d(35)
+
+        self.conv4 = nn.Conv2d(in_channels=35, out_channels=45, kernel_size=(4, 1), stride=(1, 1), padding='same')
+        self.bn4 = nn.BatchNorm2d(45)
+        self.dropout4 = nn.Dropout(0.3)  # Dropout only in deeper conv layers
+
+        self.conv5 = nn.Conv2d(in_channels=45, out_channels=45, kernel_size=(4, 1), stride=(1, 1), padding='same')
+        self.bn5 = nn.BatchNorm2d(45)
+        self.dropout5 = nn.Dropout(0.3)  # Dropout only in deeper conv layers
+
+        self.flatten = nn.Flatten()
+        self.fc1 = nn.Linear(45 * self.input_window_length, 768)
+        self.dropout_fc1 = nn.Dropout(0.3)  # Dropout in FC layer
+
+        self.fc2 = nn.Linear(768, 1)
+
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = x.unsqueeze(1).unsqueeze(-1)
+        x = self.relu(self.bn1(self.conv1(x)))
+        x = self.relu(self.bn2(self.conv2(x)))
+        x = self.relu(self.bn3(self.conv3(x)))
+
+        x = self.relu(self.bn4(self.conv4(x)))
+        x = self.dropout4(x)  # Apply dropout in deeper conv layers
+
+        x = self.relu(self.bn5(self.conv5(x)))
+        x = self.dropout5(x)  # Apply dropout in deeper conv layers
+
+        x = self.flatten(x)
+        x = self.relu(self.fc1(x))
+        x = self.dropout_fc1(x)  # Dropout in FC layer
+
         x = self.fc2(x)
         return x
