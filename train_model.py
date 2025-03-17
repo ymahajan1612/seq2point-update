@@ -39,8 +39,6 @@ class Trainer:
         learning_rate = 0.001
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
         
-        # Set up a LR scheduler that updates on plateau
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', patience=2, factor=0.1, verbose=True)
 
         # create the dataloaders from the CSVs
         self.batch_size = 1000
@@ -85,8 +83,6 @@ class Trainer:
             val_loss /= len(self.validation_loader)
             print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss}, Val Loss: {val_loss}")
 
-            # Step the LR scheduler based on validation loss
-            self.scheduler.step(val_loss)
 
             if val_loss < self.best_val_loss - self.min_delta:
                 print(f"Validation loss improved from {self.best_val_loss} to {val_loss}. Saving model...")
