@@ -14,7 +14,7 @@ class Seq2PointFactory:
         elif model_type.lower() == 'seq2pointreduced':
             return Seq2PointReduced(input_window_length=input_window_length)
         elif model_type.lower() == 'seq2pointlstm':
-            return Seq2PointLSTM(input_window_length=input_window_length)
+            return Seq2PointCNNLSTM(input_window_length=input_window_length)
         elif model_type.lower() == 'seq2pointbalanced':
             return Seq2PointBalanced(input_window_length=input_window_length)
         else:
