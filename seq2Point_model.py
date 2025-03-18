@@ -147,10 +147,10 @@ class Seq2PointBalanced(Seq2PointBase):
 
 
         self.flatten = nn.Flatten()
-        self.fc1 = nn.Linear(45 * (self.input_window_length // 8), 512)  
+        self.fc1 = nn.Linear(45 * (self.input_window_length // 8), 768)  
         self.dropout_fc1 = nn.Dropout(0.5)
 
-        self.fc2 = nn.Linear(512, 1)
+        self.fc2 = nn.Linear(768, 1)
 
         self.relu = nn.ReLU()
 
