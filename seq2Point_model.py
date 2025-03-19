@@ -134,21 +134,21 @@ class Seq2PointBalanced(Seq2PointBase):
     def __init__(self, input_window_length=599):
         super(Seq2PointBalanced, self).__init__(input_window_length=input_window_length)
 
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=25, kernel_size=(8, 1), stride=(1, 1), padding='same')
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=(8, 1), stride=(1, 1), padding='same')
         self.pool1 = nn.MaxPool2d(kernel_size=(2, 1))
 
-        self.conv2 = nn.Conv2d(in_channels=25, out_channels=35, kernel_size=(6, 1), stride=(1, 1), padding='same')
+        self.conv2 = nn.Conv2d(in_channels=16, out_channels=24, kernel_size=(6, 1), stride=(1, 1), padding='same')
         self.pool2 = nn.MaxPool2d(kernel_size=(2, 1))  
 
-        self.conv3 = nn.Conv2d(in_channels=35, out_channels=45, kernel_size=(5, 1), stride=(1, 1), padding='same')
+        self.conv3 = nn.Conv2d(in_channels=24, out_channels=32, kernel_size=(5, 1), stride=(1, 1), padding='same')
 
         self.pool3 = nn.MaxPool2d(kernel_size=(2, 1))  
-        self.dropout3 = nn.Dropout(0.5)
+        self.dropout3 = nn.Dropout(0.3)
 
 
         self.flatten = nn.Flatten()
         self.fc1 = nn.Linear(45 * (self.input_window_length // 8), 768)  
-        self.dropout_fc1 = nn.Dropout(0.5)
+        self.dropout_fc1 = nn.Dropout(0.3)
 
         self.fc2 = nn.Linear(768, 1)
 
