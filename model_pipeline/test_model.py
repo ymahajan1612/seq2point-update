@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 import pandas as pd
 import numpy as np
-from seq2Point_factory import Seq2PointFactory
+from model_pipeline.seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import os

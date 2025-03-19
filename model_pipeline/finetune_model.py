@@ -2,7 +2,7 @@ from data_feeder import SlidingWindowDataset
 import torch
 from torch.utils.data import DataLoader
 import os
-from seq2Point_factory import Seq2PointFactory
+from model_pipeline.seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
