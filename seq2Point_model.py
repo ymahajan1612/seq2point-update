@@ -104,7 +104,7 @@ class Seq2PointLSTM(Seq2PointBase):
     """
 
     def __init__(self, input_window_length=180):
-        super(Seq2pointLSTM, self).__init__(input_window_length=input_window_length)
+        super(Seq2PointLSTM, self).__init__(input_window_length=input_window_length)
 
         self.pad = nn.ConstantPad1d((1,2), 0)
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=4, stride=1)
