@@ -8,6 +8,8 @@ from seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+
 
 class Trainer:
     def __init__(self, model_name, train_csv_dirs, validation_csv_dirs, appliance, dataset, model_save_dir, window_length=599):
@@ -38,9 +40,10 @@ class Trainer:
         beta_2 = 0.999
         learning_rate = 0.001
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
+
         
         # create the dataloaders from the CSVs
-        self.batch_size = 1000
+        self.batch_size = 256
         train_dataset = SlidingWindowDataset(train_csv_dirs, self.model.getWindowSize())
         validation_dataset = SlidingWindowDataset(validation_csv_dirs, self.model.getWindowSize())
         self.train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
@@ -49,8 +52,9 @@ class Trainer:
         # implement early stopping
         self.patience = 3
         self.best_val_loss = float("inf")
-        self.min_delta = 1e-6
+        self.min_delta = 1e-3
         self.counter = 0
+        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', factor=0.5, patience=2, threshold=self.min_delta)
 
         # store the train and val losses for plotting
         self.train_losses = []
@@ -101,6 +105,7 @@ class Trainer:
 
             self.train_losses.append(train_loss)
             self.val_losses.append(val_loss)
+            self.scheduler.step(val_loss)
 
     def plotLosses(self, save_location=None):
         plt.plot(self.train_losses, label="Train Loss")

@@ -99,7 +99,7 @@ class Seq2PointReduced(Seq2PointBase):
         
 class Seq2PointLSTM(Seq2PointBase):
     """
-    Seq2Point model with CNN and LSTM layers.
+    Seq2Point model with LSTM layers.
     Single CNN layer followed by two LSTM layers.
     """
 
