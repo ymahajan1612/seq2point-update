@@ -97,14 +97,14 @@ class Seq2PointReduced(Seq2PointBase):
         x = self.fc2(x)
         return x
         
-class Seq2PointCNNLSTM(Seq2PointBase):
+class Seq2PointLSTM(Seq2PointBase):
     """
-    Seq2Point model with CNN and LSTM layers.
+    Seq2Point model with LSTM layers.
     Single CNN layer followed by two LSTM layers.
     """
 
     def __init__(self, input_window_length=180):
-        super(Seq2PointCNNLSTM, self).__init__(input_window_length=input_window_length)
+        super(Seq2pointLSTM, self).__init__(input_window_length=input_window_length)
 
         self.pad = nn.ConstantPad1d((1,2), 0)
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=4, stride=1)

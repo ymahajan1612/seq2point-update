@@ -13,9 +13,7 @@ class Seq2PointFactory:
             return Seq2PointSimple(input_window_length=input_window_length)
         elif model_type.lower() == 'seq2pointreduced':
             return Seq2PointReduced(input_window_length=input_window_length)
-        elif model_type.lower() == 'seq2pointcnnlstm':
-            return Seq2PointCNNLSTM(input_window_length=input_window_length)
-        elif model_type.lower() == 'seq2pointbalanced':
-            return Seq2PointBalanced(input_window_length=input_window_length)
+        elif model_type.lower() == 'seq2pointlstm':
+            return Seq2pointCNNLSTM(input_window_length=input_window_length)
         else:
             raise ValueError('Unknown model type: {}'.format(model_type))
