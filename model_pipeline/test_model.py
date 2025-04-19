@@ -136,6 +136,7 @@ class Tester:
         plt.plot(results_df["time"], results_df["aggregate"], label="Aggregate", alpha=0.7)
         plt.plot(results_df["time"], results_df["ground truth"], label="Ground Truth", alpha=0.7)
         plt.plot(results_df["time"], results_df["prediction"], label="Prediction", alpha=0.7)
+        plt.title(f"Prediction Plot for {self.appliance_name_formatted} using {self.model_name}")
         plt.xlabel("Timestamp")
         plt.ylabel("Power (Watts)")
         plt.legend()
@@ -146,3 +147,7 @@ class Tester:
         mae, sae, dt = self.getMetrics()
         plt.figtext(0.15, 0.01, f"MAE: {mae:.2f} Watts, SAE: {sae:.2f}, Inference Time: {dt:.2f} seconds", ha="left", fontsize=12)
         plt.show()
+        # Save the plot to the current working directory
+        plot_filename = f"prediction_plot_{self.appliance_name_formatted}_{self.model_name}.png"
+        plt.savefig(plot_filename)
+        print(f"Plot saved as {plot_filename} in the current working directory.")
