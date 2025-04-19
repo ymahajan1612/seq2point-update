@@ -142,6 +142,10 @@ class DataSeparator:
             print(f"Key not found in HDF5 file: {key}")
 
     def _generate_timestamps(self, file_name):
+        """
+        Method for generating timestamps for 
+        the ECO dataset using the file name.
+        """
         num_rows=86400
         base_date = file_name.split(".")[0]
         start_time = pd.to_datetime(base_date)
