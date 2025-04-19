@@ -8,7 +8,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 
 class Finetuner:
-    def __init__(self,model_state_dir, finetune_data_dir, appliance, dataset, model_save_dir):
+    def __init__(self,model_state_dir, finetune_csv_dir, dataset, model_save_dir):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         # load the model
         checkpoint = torch.load(model_state_dir, map_location=self.device)
@@ -17,7 +17,7 @@ class Finetuner:
         self.model_state_dict = checkpoint['model_state_dict']
         self.model = Seq2PointFactory.createModel(self.model_name, self.window_length)
         self.model.load_state_dict(self.model_state_dict)
-        self.appliance = appliance
+        self.appliance_name_formatted = checkpoint['appliance']
         self.dataset = dataset 
         self.model_save_dir = model_save_dir
         
@@ -33,11 +33,10 @@ class Finetuner:
         self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=learning_rate, betas=(beta_1, beta_2))
         # create the dataloaders from the CSVs
         self.batch_size = 1000
-        finetune_dataset = SlidingWindowDataset([finetune_data_dir], self.model.getWindowSize())
+        finetune_dataset = SlidingWindowDataset([finetune_csv_dir], self.model.getWindowSize())
         self.finetune_loader = DataLoader(finetune_dataset, batch_size=1000, shuffle=True)
         self.finetuning_losses = []
         # implement early stopping
-        self.epochs = 50
         self.patience = 5
         self.best_val_loss = float("inf")
         self.min_delta = 1e-8
@@ -53,8 +52,8 @@ class Finetuner:
             if not isinstance(layer_type, nn.Linear):
                 param.requires_grad = False
     
-    def fineTune(self):
-        for epoch in range(self.epochs):
+    def fineTune(self, max_epochs = 50):
+        for epoch in range(max_epochs):
             self.model.train()  
             train_loss = 0 
             for inputs,targets in self.finetune_loader:
@@ -69,7 +68,7 @@ class Finetuner:
                 train_loss += loss.item()
             
             train_loss /= len(self.finetune_loader)
-            print(f"Epoch {epoch+1}/{self.epochs} Loss: {train_loss}")
+            print(f"Epoch {epoch+1}/{max_epochs} Loss: {train_loss}")
 
             if train_loss < self.best_val_loss - self.min_delta:
                 self.best_val_loss = train_loss
@@ -77,8 +76,9 @@ class Finetuner:
                 torch.save({
                         'model_state_dict': self.model.state_dict(),
                         'model_name' : self.model_name,
-                        'window_length' : self.window_length
-                    }, os.path.join(self.model_save_dir,f"{self.appliance}_{self.dataset}_{self.model_name}.pth"))
+                        'window_length' : self.window_length,
+                        'appliance' : self.appliance_name_formatted
+                    }, os.path.join(self.model_save_dir,f"{self.appliance_name_formatted}_{self.dataset}_{self.model_name}.pth"))
                 self.counter = 0
             else:
                 self.counter += 1

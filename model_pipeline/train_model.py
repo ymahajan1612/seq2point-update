@@ -99,7 +99,8 @@ class Trainer:
                 torch.save({
                     'model_state_dict': self.model.state_dict(),
                     'model_name' : self.model_name,
-                    'window_length' : self.model.getWindowSize()
+                    'window_length' : self.model.getWindowSize(),
+                    'appliance' : self.appliance_name_formatted
                 }, os.path.join(self.model_save_dir, f"{self.appliance}_{self.dataset}_{self.model_name}.pth"))
                 self.counter = 0
             else:

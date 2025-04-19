@@ -12,13 +12,12 @@ import json
 import time 
 
 class Tester:
-    def __init__(self, model_state_dir, test_csv_dir, appliance):
+    def __init__(self, model_state_dir, test_csv_dir):
         """
         Tester class for testing the model
         model_name (str): Name of the model to test.
         model_state_dir (str): Directory to load the model state from.
         test_csv_dir (str): Directory to load the test CSV from.
-        appliance (str): Name of the appliance to test the model for.
         """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.criterion = nn.MSELoss()
@@ -33,7 +32,7 @@ class Tester:
         self.model.to(self.device)
 
         # extract the normalisation parameters from the house
-        self.appliance_name_formatted = appliance.replace(" ", "_")
+        self.appliance_name_formatted = checkpoint['appliance']
 
         # set up the dataloader
         self.batch_size = 1000
@@ -93,6 +92,7 @@ class Tester:
         time_end = time.time()
         self.dt = time_end - time_start
         print(f"Test Loss: {test_loss}")
+
     
     def getResults(self):
         """

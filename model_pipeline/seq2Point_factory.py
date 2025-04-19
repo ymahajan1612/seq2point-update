@@ -6,9 +6,9 @@ class Seq2PointFactory:
     """
     model_mappings = {
         'Original Seq2Point': Seq2PointSimple,
-        'Reduced Seq2Point': Seq2PointReduced, 
-        'CNN/LSTM Seq2Point': Seq2PointCNNLSTM
-
+        'Dropout-Reduced Seq2Point': Seq2PointReduced, 
+        'LSTM-Based Seq2Point': Seq2PointLSTM,
+        'Balanced Seq2Point': Seq2PointBalanced
     }
     @staticmethod
     def createModel(model_type, input_window_length):
