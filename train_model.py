@@ -42,7 +42,7 @@ class Trainer:
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, betas=(beta_1, beta_2))
         
         # Set up a LR scheduler that updates on plateau
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', patience=2, factor=0.1, verbose=True)
+        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', patience=2, factor=0.1)
 
         # create the dataloaders from the CSVs
         self.batch_size = 256
