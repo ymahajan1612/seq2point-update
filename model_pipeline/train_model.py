@@ -1,4 +1,4 @@
-from data_feeder import SlidingWindowDataset
+from model_pipeline.data_feeder import SlidingWindowDataset
 import torch
 from torch.utils.data import DataLoader
 import os
