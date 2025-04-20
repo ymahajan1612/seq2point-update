@@ -146,8 +146,8 @@ class Tester:
 
         mae, sae, dt = self.getMetrics()
         plt.figtext(0.15, 0.01, f"MAE: {mae:.2f} Watts, SAE: {sae:.2f}, Inference Time: {dt:.2f} seconds", ha="left", fontsize=12)
+        plt.savefig(plot_filename, bbox_inches='tight', dpi=300)  # Save the plot with high resolution
         plt.show()
         # Save the plot to the current working directory
         plot_filename = f"prediction_plot_{self.appliance_name_formatted}_{self.model_name}.png"
-        plt.savefig(plot_filename)
         print(f"Plot saved as {plot_filename} in the current working directory.")
