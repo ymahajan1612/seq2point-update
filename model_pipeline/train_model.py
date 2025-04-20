@@ -113,12 +113,12 @@ class Trainer:
             self.val_losses.append(val_loss)
             self.scheduler.step(val_loss)
 
-    def plotLosses(self, save_location=None):
+    def plotLosses(self):
         plt.plot(self.train_losses, label="Train Loss")
         plt.plot(self.val_losses, label="Validation Loss")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend()
-        if save_location:
-            plt.savefig(save_location)
+        plt.title(f"Training and Validation Loss for {self.appliance_name_formatted} on {self.dataset} using {self.model_name}")
+        plt.savefig(f'learning_curves/{self.appliance_name_formatted}_{self.dataset}_{self.model_name}_loss.png')
         plt.show()
