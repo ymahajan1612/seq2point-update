@@ -120,5 +120,5 @@ class Trainer:
         plt.ylabel("Loss")
         plt.legend()
         plt.title(f"Training and Validation Loss for {self.appliance_name_formatted} on {self.dataset} using {self.model_name}")
-        plt.savefig(f'learning_curves/{self.appliance_name_formatted}_{self.dataset}_{self.model_name}_loss.png')
+        plt.savefig(f'{self.appliance_name_formatted}_{self.dataset}_{self.model_name}_loss.png')
         plt.show()

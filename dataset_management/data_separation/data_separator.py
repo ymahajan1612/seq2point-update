@@ -55,7 +55,7 @@ class DataSeparator:
             if self.dataset_type == 'ECO':
                 self._process_eco_aggregate_data(house_number)
             for channel, appliance in channels.items():
-                if self.appliance_name and self.appliance_name != appliance.lower():
+                if self.appliance_name and self.appliance_name != appliance.lower() and appliance != 'aggregate':
                     continue
 
                 print(f"Processing data for House {house_number}, Appliance: {appliance}")

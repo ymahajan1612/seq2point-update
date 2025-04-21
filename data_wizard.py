@@ -66,7 +66,7 @@ def runDatasetManager():
         max_num_rows = 1 * (10**6)
     
     dataset_manager = DatasetManager(data_directory=data_directory, save_path=save_path, dataset=dataset_type, appliance_name=appliance, debug=debug, max_num_houses=max_num_houses, max_num_rows=max_num_rows)
-    dataset_manager.createDataset()
+    dataset_manager.createData()
 
 
 def main():
