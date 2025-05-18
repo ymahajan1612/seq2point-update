@@ -1,10 +1,10 @@
-from data_feeder import SlidingWindowDataset
+from model_pipeline.data_feeder import SlidingWindowDataset
 import torch
 from torch.utils.data import DataLoader
 import os
 import json
 import pandas as pd
-from seq2Point_factory import Seq2PointFactory
+from model_pipeline.seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -99,7 +99,8 @@ class Trainer:
                 torch.save({
                     'model_state_dict': self.model.state_dict(),
                     'model_name' : self.model_name,
-                    'window_length' : self.model.getWindowSize()
+                    'window_length' : self.model.getWindowSize(),
+                    'appliance' : self.appliance_name_formatted
                 }, os.path.join(self.model_save_dir, f"{self.appliance}_{self.dataset}_{self.model_name}.pth"))
                 self.counter = 0
             else:
@@ -112,12 +113,12 @@ class Trainer:
             self.val_losses.append(val_loss)
             self.scheduler.step(val_loss)
 
-    def plotLosses(self, save_location=None):
+    def plotLosses(self):
         plt.plot(self.train_losses, label="Train Loss")
         plt.plot(self.val_losses, label="Validation Loss")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend()
-        if save_location:
-            plt.savefig(save_location)
+        plt.title(f"Training and Validation Loss for {self.appliance_name_formatted} on {self.dataset} using {self.model_name}")
+        plt.savefig(f'{self.appliance_name_formatted}_{self.dataset}_{self.model_name}_loss.png')
         plt.show()

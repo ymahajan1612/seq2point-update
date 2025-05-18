@@ -68,7 +68,7 @@ class DatasetManager:
             # Merge the aggregate and appliance data on timestamp and resample to 6 seconds
             merged_data = aggregate_data.join(appliance_data, how='outer')
             merged_data.index = pd.to_datetime(merged_data.index)
-            merged_data = merged_data.resample('6S').mean().fillna(method='backfill', limit=1)
+            merged_data = merged_data.resample('6S').mean().bfill(limit=1)
             merged_data.dropna(inplace=True)
             merged_data.reset_index(inplace=True)
             filtered_data = self.selectBestChunk(merged_data)
@@ -115,18 +115,4 @@ class DatasetManager:
 
         
 
-
-
-ukdale_appliances = ["microwave", "dishwasher", "kettle", "washing machine"]
-refit_appliances = ["microwave", "dishwasher", "kettle", "washing machine"]
-for appliance in refit_appliances:
-    appliance_manager = DatasetManager(
-        data_directory=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_data_separated"),
-        save_path=os.path.join("C:\\", "Users", "yashm", "OneDrive - The University of Manchester", "Documents", "REFIT_appliances"),
-        dataset='REFIT',
-        appliance_name=appliance,
-        debug=True,
-        max_num_rows=1000000,
-    )
-    appliance_manager.createData()
 

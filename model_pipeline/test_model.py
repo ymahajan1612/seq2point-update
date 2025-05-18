@@ -1,9 +1,9 @@
-from data_feeder import SlidingWindowDataset
+from model_pipeline.data_feeder import SlidingWindowDataset
 import torch
 from torch.utils.data import DataLoader
 import pandas as pd
 import numpy as np
-from seq2Point_factory import Seq2PointFactory
+from model_pipeline.seq2Point_factory import Seq2PointFactory
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import os
@@ -12,13 +12,12 @@ import json
 import time 
 
 class Tester:
-    def __init__(self, model_state_dir, test_csv_dir, appliance):
+    def __init__(self, model_state_dir, test_csv_dir):
         """
         Tester class for testing the model
         model_name (str): Name of the model to test.
         model_state_dir (str): Directory to load the model state from.
         test_csv_dir (str): Directory to load the test CSV from.
-        appliance (str): Name of the appliance to test the model for.
         """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.criterion = nn.MSELoss()
@@ -33,7 +32,7 @@ class Tester:
         self.model.to(self.device)
 
         # extract the normalisation parameters from the house
-        self.appliance_name_formatted = appliance.replace(" ", "_")
+        self.appliance_name_formatted = checkpoint['appliance']
 
         # set up the dataloader
         self.batch_size = 1000
@@ -93,6 +92,7 @@ class Tester:
         time_end = time.time()
         self.dt = time_end - time_start
         print(f"Test Loss: {test_loss}")
+
     
     def getResults(self):
         """
@@ -136,6 +136,7 @@ class Tester:
         plt.plot(results_df["time"], results_df["aggregate"], label="Aggregate", alpha=0.7)
         plt.plot(results_df["time"], results_df["ground truth"], label="Ground Truth", alpha=0.7)
         plt.plot(results_df["time"], results_df["prediction"], label="Prediction", alpha=0.7)
+        plt.title(f"Prediction Plot for {self.appliance_name_formatted} using {self.model_name}")
         plt.xlabel("Timestamp")
         plt.ylabel("Power (Watts)")
         plt.legend()
@@ -145,4 +146,8 @@ class Tester:
 
         mae, sae, dt = self.getMetrics()
         plt.figtext(0.15, 0.01, f"MAE: {mae:.2f} Watts, SAE: {sae:.2f}, Inference Time: {dt:.2f} seconds", ha="left", fontsize=12)
+        plot_filename = f"prediction_plot_{self.appliance_name_formatted}_{self.model_name}.png"
+        plt.savefig(plot_filename, bbox_inches='tight', dpi=300)  # Save the plot with high resolution
         plt.show()
+        # Save the plot to the current working directory
+        print(f"Plot saved as {plot_filename} in the current working directory.")
